@@ -2,692 +2,1149 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-  <title>Track365 - Ultra Precision GPS</title>
-  
-  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Track365 - Tactical Radar & Circle Safety</title>
+
+  <!-- PWA & Mobile Standalone Settings -->
+  <meta name="theme-color" content="#06080e">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Track365">
+
+  <!-- Embedded Web App Manifest for Native "Add to Home Screen" -->
+  <link rel="manifest" href="data:application/manifest+json,%7B%22name%22%3A%22Track365%20Radar%22%2C%22short_name%22%3A%22Track365%22%2C%22start_url%22%3A%22.%22%2C%22display%22%3A%22standalone%22%2C%22background_color%22%3A%22%2306080e%22%2C%22theme_color%22%3A%22%2306080e%22%7D">
+
+  <!-- Google Font: Plus Jakarta Sans -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
+
+  <!-- Leaflet Map CSS -->
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-  
-  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
 
   <style>
     :root {
-      --bg: #09090b;
-      --card-bg: rgba(18, 18, 22, 0.88);
-      --card-border: rgba(255, 255, 255, 0.14);
-      --text: #ffffff;
-      --text-sub: #a1a1aa;
-      --input-bg: rgba(255, 255, 255, 0.06);
-      --drawer-bg: rgba(18, 18, 22, 0.95);
-      --shadow: rgba(0, 0, 0, 0.6);
+      --bg-base: #06080e;
+      --panel-bg: rgba(14, 18, 28, 0.92);
+      --panel-card: rgba(22, 28, 42, 0.94);
+      --border-color: rgba(255, 255, 255, 0.12);
+      --text-main: #ffffff;
+      --text-sub: #8d9bb3;
+      --accent-pro: #0A84FF;
+      --accent-danger: #FF453A;
+      --accent-green: #32D74B;
+      --accent-amber: #FF9F0A;
+      --glass-blur: blur(20px);
+      --shadow-3d: 0 16px 36px rgba(0, 0, 0, 0.6), 0 2px 6px rgba(255, 255, 255, 0.05);
     }
 
     body.light-mode {
-      --bg: #f4f4f5;
-      --card-bg: rgba(255, 255, 255, 0.88);
-      --card-border: rgba(0, 0, 0, 0.12);
-      --text: #09090b;
-      --text-sub: #52525b;
-      --input-bg: rgba(0, 0, 0, 0.05);
-      --drawer-bg: rgba(255, 255, 255, 0.95);
-      --shadow: rgba(0, 0, 0, 0.15);
+      --bg-base: #f0f3fa;
+      --panel-bg: rgba(255, 255, 255, 0.95);
+      --panel-card: rgba(240, 244, 252, 0.96);
+      --border-color: rgba(0, 0, 0, 0.1);
+      --text-main: #0c101c;
+      --text-sub: #5a6882;
+      --accent-pro: #0066d6;
+      --accent-danger: #d93025;
+      --accent-green: #1e8e3e;
+      --accent-amber: #d97706;
+      --shadow-3d: 0 16px 36px rgba(0, 0, 0, 0.12), 0 2px 6px rgba(0, 0, 0, 0.04);
     }
 
-    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Plus Jakarta Sans', -apple-system, sans-serif; -webkit-tap-highlight-color: transparent; }
-    html, body { width: 100%; height: 100%; overflow: hidden; background: var(--bg); color: var(--text); transition: background 0.3s ease, color 0.3s ease; }
-    #map { width: 100vw; height: 100vh; z-index: 1; }
-
-    .watermark {
-      position: fixed; bottom: 6px; right: 8px; font-size: 11px; color: var(--text-sub);
-      z-index: 9999; font-family: monospace; pointer-events: none; letter-spacing: 0.5px; opacity: 0.75; font-weight: 700;
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'Plus Jakarta Sans', -apple-system, sans-serif;
+      user-select: none;
+      -webkit-tap-highlight-color: transparent;
     }
 
-    .top-bar {
-      position: absolute; top: 12px; left: 12px; right: 12px; z-index: 1000;
-      display: flex; justify-content: space-between; align-items: center;
-      background: var(--card-bg); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
-      padding: 10px 14px; border-radius: 20px; border: 1px solid var(--card-border);
-      box-shadow: 0 12px 32px var(--shadow);
+    body, html {
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background: var(--bg-base);
+      color: var(--text-main);
+      transition: background 0.3s ease, color 0.3s ease;
     }
-    .badge {
-      background: linear-gradient(135deg, #2563eb, #1d4ed8); color: #fff;
-      padding: 5px 12px; border-radius: 20px; font-weight: 700; font-size: 11px;
-    }
-    .status-pill {
-      display: flex; align-items: center; gap: 6px; font-size: 11px; font-weight: 700; color: var(--text-sub);
-    }
-    .pulse-green {
-      width: 8px; height: 8px; background: #10b981; border-radius: 50%;
-      box-shadow: 0 0 12px #10b981; animation: pulse 1.8s infinite;
-    }
-    @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.4; } 100% { opacity: 1; } }
 
-    .icon-btn {
-      height: 36px; padding: 0 10px; border-radius: 12px; background: var(--input-bg);
-      border: 1px solid var(--card-border); color: var(--text); display: flex;
-      align-items: center; justify-content: center; font-size: 13px; font-weight: 800; cursor: pointer;
+    #map {
+      width: 100%;
+      height: 100%;
+      position: absolute;
+      z-index: 1;
     }
-    .buy-btn-top { background: linear-gradient(135deg, #6366f1, #4f46e5); color: #fff; border: none; }
 
-    .map-controls {
-      position: absolute; top: 80px; right: 12px; z-index: 1000;
-      display: flex; flex-direction: column; gap: 8px;
+    /* Top HUD */
+    .top-nav {
+      position: absolute;
+      top: 16px;
+      left: 16px;
+      right: 16px;
+      z-index: 1000;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      pointer-events: none;
     }
-    .map-btn {
-      width: 44px; height: 44px; border-radius: 16px; background: var(--card-bg);
-      backdrop-filter: blur(16px); border: 1px solid var(--card-border); color: var(--text);
-      display: flex; align-items: center; justify-content: center; font-size: 18px; cursor: pointer;
-    }
-    .map-btn.active-mode { border-color: #2563eb; background: rgba(37, 99, 235, 0.2); }
 
-    .drawer {
-      position: absolute; bottom: 0; left: 0; right: 0; z-index: 1000;
-      background: var(--drawer-bg); backdrop-filter: blur(25px);
-      border-top-left-radius: 28px; border-top-right-radius: 28px;
-      padding: 12px 20px 24px 20px; color: var(--text); border-top: 1px solid var(--card-border);
-      box-shadow: 0 -12px 40px var(--shadow); max-height: 60vh; overflow-y: auto;
+    .profile-pill {
+      pointer-events: auto;
+      background: var(--panel-bg);
+      backdrop-filter: var(--glass-blur);
+      border: 1px solid var(--border-color);
+      padding: 6px 14px 6px 6px;
+      border-radius: 40px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      box-shadow: var(--shadow-3d);
+      cursor: pointer;
+      transition: transform 0.2s;
     }
-    .drawer-handle { width: 40px; height: 4px; background: var(--text-sub); opacity: 0.4; border-radius: 10px; margin: 0 auto 14px auto; }
+    .profile-pill:active { transform: scale(0.96); }
 
-    .btn {
-      width: 100%; padding: 14px; border: none; border-radius: 14px; font-weight: 700;
-      font-size: 14px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; margin-top: 10px;
+    .avatar-circle {
+      width: 38px;
+      height: 38px;
+      border-radius: 50%;
+      background: #1e2433;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 800;
+      color: #fff;
+      overflow: hidden;
+      border: 2px solid var(--border-color);
     }
-    .btn-green { background: #10b981; color: #000; }
-    .btn-upi { background: linear-gradient(135deg, #6366f1, #4f46e5); color: #fff; }
-    .btn-sos { background: #ef4444; color: #fff; }
-    .btn-hazard { background: #f59e0b; color: #000; }
-    .btn-secondary { background: var(--input-bg); color: var(--text); border: 1px solid var(--card-border); }
+    .avatar-circle img { width: 100%; height: 100%; object-fit: cover; }
+
+    .profile-info h1 { font-size: 0.88rem; font-weight: 800; letter-spacing: -0.2px; }
+    .profile-info span { font-size: 0.68rem; color: var(--text-sub); font-weight: 600; }
+    .watermark-badge { font-size: 0.62rem; color: var(--accent-pro); font-weight: 800; display: block; margin-top: 1px; }
+
+    .action-stack {
+      pointer-events: auto;
+      display: flex;
+      gap: 8px;
+    }
+
+    .glass-btn {
+      background: var(--panel-bg);
+      backdrop-filter: var(--glass-blur);
+      border: 1px solid var(--border-color);
+      color: var(--text-main);
+      width: 44px;
+      height: 44px;
+      border-radius: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.15rem;
+      cursor: pointer;
+      box-shadow: var(--shadow-3d);
+      transition: transform 0.2s, background 0.2s;
+    }
+    .glass-btn:active { transform: scale(0.92); }
+
+    /* Map Badges & Floating Controls */
+    .map-badge-tag {
+      position: absolute;
+      top: 72px;
+      left: 16px;
+      z-index: 1000;
+      background: var(--panel-bg);
+      backdrop-filter: var(--glass-blur);
+      border: 1px solid var(--border-color);
+      padding: 5px 12px;
+      border-radius: 10px;
+      font-size: 0.7rem;
+      font-weight: 700;
+      color: var(--text-sub);
+      box-shadow: var(--shadow-3d);
+      pointer-events: none;
+    }
+
+    .side-tools {
+      position: absolute;
+      right: 16px;
+      top: 50%;
+      transform: translateY(-50%);
+      z-index: 1000;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      pointer-events: auto;
+    }
+
+    #speedWarningBanner {
+      display: none;
+      position: absolute;
+      top: 72px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 2000;
+      background: rgba(255, 69, 58, 0.9);
+      backdrop-filter: blur(10px);
+      color: #fff;
+      padding: 6px 16px;
+      border-radius: 20px;
+      font-size: 0.75rem;
+      font-weight: 800;
+      box-shadow: 0 0 20px rgba(255, 69, 58, 0.5);
+      animation: pulseAlert 1s infinite alternate;
+    }
+
+    @keyframes pulseAlert {
+      from { transform: translateX(-50%) scale(0.96); }
+      to { transform: translateX(-50%) scale(1.04); }
+    }
+
+    /* Bottom Expandable Drawer */
+    .bottom-drawer {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      z-index: 1000;
+      background: var(--panel-bg);
+      backdrop-filter: var(--glass-blur);
+      border-top: 1px solid var(--border-color);
+      border-top-left-radius: 28px;
+      border-top-right-radius: 28px;
+      padding: 12px 18px 24px 18px;
+      box-shadow: 0 -12px 40px rgba(0, 0, 0, 0.45);
+      transition: transform 0.35s cubic-bezier(0.2, 0.9, 0.3, 1);
+      transform: translateY(calc(100% - 150px));
+      max-height: 85vh;
+      overflow-y: auto;
+    }
+    .bottom-drawer.expanded { transform: translateY(0); }
+
+    .drawer-handle-zone {
+      display: flex;
+      justify-content: center;
+      padding-bottom: 10px;
+      cursor: pointer;
+    }
+    .drawer-handle {
+      width: 44px;
+      height: 5px;
+      background: var(--text-sub);
+      border-radius: 10px;
+      opacity: 0.4;
+    }
+
+    .drawer-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 14px;
+    }
+    .drawer-header h2 { font-size: 1.1rem; font-weight: 800; letter-spacing: -0.3px; }
+
+    .sign-in-btn {
+      background: var(--text-main);
+      color: var(--bg-base);
+      border: none;
+      padding: 6px 14px;
+      border-radius: 12px;
+      font-weight: 800;
+      font-size: 0.72rem;
+      cursor: pointer;
+    }
+
+    /* Metrics Grid */
+    .metric-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 8px;
+      margin-bottom: 14px;
+    }
+    .metric-box {
+      background: var(--panel-card);
+      padding: 10px 4px;
+      border-radius: 14px;
+      text-align: center;
+      border: 1px solid var(--border-color);
+      box-shadow: var(--shadow-3d);
+    }
+    .metric-box h3 { font-size: 1.05rem; font-weight: 800; }
+    .metric-box span { font-size: 0.65rem; color: var(--text-sub); font-weight: 700; display: flex; align-items: center; justify-content: center; gap: 4px; margin-top: 2px; }
+
+    .section-label {
+      font-size: 0.72rem;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: var(--text-sub);
+      margin: 12px 0 6px 0;
+      display: flex;
+      justify-content: space-between;
+    }
+
+    /* Feature Toggles (Freemium Split) */
+    .feature-toggles {
+      display: flex;
+      gap: 8px;
+      overflow-x: auto;
+      padding-bottom: 8px;
+      scrollbar-width: none;
+      margin-bottom: 12px;
+    }
+    .feature-toggles::-webkit-scrollbar { display: none; }
+
+    .toggle-chip {
+      background: var(--panel-card);
+      border: 1px solid var(--border-color);
+      padding: 10px 14px;
+      border-radius: 14px;
+      font-size: 0.75rem;
+      font-weight: 700;
+      color: var(--text-sub);
+      white-space: nowrap;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.2s;
+    }
+    .toggle-chip.active-green { background: rgba(50, 215, 75, 0.18); color: var(--accent-green); border-color: var(--accent-green); }
+    .toggle-chip.active-ghost { background: rgba(255, 159, 10, 0.18); color: #FF9F0A; border-color: #FF9F0A; }
+    .lock-badge { font-size: 0.65rem; background: rgba(10, 132, 255, 0.2); color: var(--accent-pro); padding: 2px 6px; border-radius: 6px; margin-left: 2px; font-weight: 800; }
+
+    /* Geofence Hub & Pro Poster */
+    .geofence-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      margin-bottom: 12px;
+    }
+    .geofence-card {
+      background: var(--panel-card);
+      border: 1px solid var(--border-color);
+      border-radius: 14px;
+      padding: 10px 12px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 0.78rem;
+      font-weight: 700;
+    }
+
+    .pro-poster {
+      background: linear-gradient(135deg, #0A84FF, #004fb3);
+      border-radius: 18px;
+      padding: 14px 16px;
+      color: #fff;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      cursor: pointer;
+      box-shadow: 0 10px 30px rgba(10, 132, 255, 0.35);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+    }
+    .pro-poster h3 { font-size: 0.95rem; font-weight: 800; margin-bottom: 2px; }
+    .pro-poster p { font-size: 0.72rem; opacity: 0.9; line-height: 1.3; }
+    .poster-btn {
+      background: #fff;
+      color: #0A84FF;
+      border: none;
+      padding: 8px 14px;
+      border-radius: 14px;
+      font-weight: 800;
+      font-size: 0.78rem;
+    }
+
+    /* Modals & Overlays */
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.78);
+      backdrop-filter: blur(10px);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 3000;
+      padding: 16px;
+    }
+    .modal-sheet {
+      background: var(--bg-base);
+      border: 1px solid var(--border-color);
+      width: 100%;
+      max-width: 360px;
+      border-radius: 26px;
+      padding: 24px;
+      text-align: center;
+      position: relative;
+      box-shadow: var(--shadow-3d);
+    }
+    .modal-close {
+      position: absolute;
+      top: 16px;
+      right: 16px;
+      background: none;
+      border: none;
+      color: var(--text-sub);
+      font-size: 1.5rem;
+      cursor: pointer;
+    }
 
     .input-box {
-      width: 100%; padding: 12px 14px; border-radius: 12px; border: 1px solid var(--card-border);
-      background: var(--input-bg); color: var(--text); font-size: 14px; margin-top: 8px; outline: none;
+      width: 100%;
+      background: var(--panel-card);
+      border: 1px solid var(--border-color);
+      color: var(--text-main);
+      padding: 14px;
+      border-radius: 14px;
+      margin-bottom: 12px;
+      outline: none;
+      font-size: 0.95rem;
+      text-align: center;
     }
+    .input-box:focus { border-color: var(--accent-pro); }
+    .btn-primary {
+      width: 100%;
+      background: var(--text-main);
+      color: var(--bg-base);
+      padding: 14px;
+      border-radius: 14px;
+      border: none;
+      font-weight: 800;
+      font-size: 0.95rem;
+      cursor: pointer;
+      transition: transform 0.15s;
+    }
+    .btn-primary:active { transform: scale(0.97); }
 
-    .member-card {
-      display: flex; align-items: center; justify-content: space-between;
-      padding: 12px 14px; background: var(--input-bg); border: 1px solid var(--card-border);
-      border-radius: 16px; margin-top: 10px;
-    }
-    .member-info { display: flex; align-items: center; gap: 12px; }
-    .avatar {
-      width: 40px; height: 40px; border-radius: 50%; background: #2563eb;
-      display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 14px;
-      color: #fff; border: 2px solid #fff; background-size: cover; background-position: center;
-    }
+    /* Profile Uploader */
+    .image-upload-wrapper { margin-bottom: 16px; display: flex; flex-direction: column; align-items: center; gap: 8px; }
+    .preview-circle { width: 84px; height: 84px; border-radius: 50%; background: var(--panel-card); display: flex; align-items: center; justify-content: center; overflow: hidden; border: 2px dashed var(--text-sub); cursor: pointer; }
+    .preview-circle img { width: 100%; height: 100%; object-fit: cover; }
+    #fileInput { display: none; }
 
-    .tab-bar { display: flex; gap: 6px; margin-bottom: 12px; overflow-x: auto; }
-    .tab-btn {
-      flex: 1; padding: 8px; background: var(--input-bg); border: 1px solid var(--card-border);
-      border-radius: 10px; color: var(--text-sub); font-size: 11px; font-weight: 700; cursor: pointer; white-space: nowrap;
+    /* 3D Isometric Card Engine */
+    .iso-stage { perspective: 1000px; margin: 12px 0 16px 0; }
+    .iso-card {
+      background: linear-gradient(145deg, #121722, #07090e);
+      border: 1.5px solid var(--accent-pro);
+      border-radius: 22px;
+      padding: 18px;
+      color: #fff;
+      transform: rotateX(14deg) rotateY(-8deg) rotateZ(2deg);
+      transform-style: preserve-3d;
+      box-shadow: 0 20px 45px rgba(10, 132, 255, 0.25);
+      transition: transform 0.4s ease-out;
     }
-    .tab-btn.active { background: #2563eb; color: #fff; border-color: #2563eb; }
+    .iso-card:hover { transform: rotateX(0deg) rotateY(0deg) scale(1.02); }
+    .iso-perks { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 10px; text-align: left; }
+    .iso-perk { background: rgba(255, 255, 255, 0.08); padding: 8px; border-radius: 10px; font-size: 0.72rem; }
 
-    .modal-overlay {
-      position: fixed; inset: 0; background: rgba(0,0,0,0.75); backdrop-filter: blur(12px);
-      z-index: 2000; display: none; align-items: center; justify-content: center; padding: 20px;
+    /* Dual UPI Tab Bar */
+    .vpa-tabs { display: flex; gap: 6px; margin-bottom: 12px; }
+    .vpa-tab { flex: 1; padding: 10px; border-radius: 12px; font-weight: 700; font-size: 0.75rem; border: 1px solid var(--border-color); cursor: pointer; text-align: center; }
+    .upi-flex { display: flex; align-items: center; gap: 12px; background: #fff; padding: 12px; border-radius: 14px; text-align: left; margin-bottom: 12px; }
+    .upi-flex img { width: 70px; height: 70px; border-radius: 8px; }
+
+    /* Thanks Card (Replaces WhatsApp Link) */
+    .thanks-box {
+      background: rgba(50, 215, 75, 0.12);
+      border: 1px solid var(--accent-green);
+      border-radius: 14px;
+      padding: 12px;
+      margin-top: 10px;
+      text-align: center;
     }
-    .modal-card {
-      background: var(--drawer-bg); border: 1px solid var(--card-border); border-radius: 24px;
-      padding: 24px; width: 100%; max-width: 360px; text-align: center; color: var(--text);
+    .thanks-box h4 { font-size: 0.85rem; color: var(--accent-green); margin-bottom: 4px; }
+    .thanks-box p { font-size: 0.72rem; color: var(--text-sub); line-height: 1.35; }
+
+    /* Radar Sweep Animation */
+    .radar-sweep {
+      border-radius: 50%;
+      background: conic-gradient(from 0deg, rgba(10, 132, 255, 0) 70%, rgba(10, 132, 255, 0.45) 100%);
+      animation: spin 2.5s linear infinite;
+      pointer-events: none;
     }
-    
-    .account-badge {
-      display: flex; align-items: center; gap: 10px; background: var(--input-bg);
-      padding: 8px 12px; border-radius: 14px; border: 1px solid var(--card-border); margin-bottom: 12px;
-    }
+    @keyframes spin { 100% { transform: rotate(360deg); } }
   </style>
 </head>
 <body>
 
-  <div class="watermark">naimish.m</div>
-
-  <div class="top-bar">
-    <div style="display: flex; align-items: center; gap: 10px;">
-      <div class="pulse-green"></div>
-      <div>
-        <div style="font-size: 10px; color: var(--text-sub); text-transform: uppercase; font-weight: 800;">Track365</div>
-        <div id="circleNameDisplay" style="font-size: 14px; font-weight: 700;">NOT JOINED</div>
-      </div>
-    </div>
-    <div style="display: flex; align-items: center; gap: 6px;">
-      <button class="icon-btn buy-btn-top" onclick="openPaywallModal()">💎 Buy</button>
-      <button class="icon-btn" id="themeBtn" onclick="toggleTheme()">🌙</button>
-      <div id="batteryDisplay" class="status-pill" style="background: var(--input-bg); padding: 4px 6px; border-radius: 10px;">🔋 --%</div>
-      <div id="circleCodeBadge" class="badge" style="display:none;">---</div>
-    </div>
-  </div>
-
-  <div class="map-controls">
-    <button class="map-btn active-mode" id="btn-satellite" onclick="switchMapLayer('satellite')">🛰️</button>
-    <button class="map-btn" id="btn-dark" onclick="switchMapLayer('dark')">🌙</button>
-    <button class="map-btn" id="btn-light" onclick="switchMapLayer('light')">☀️</button>
-    <button class="map-btn" id="btn-streets" onclick="switchMapLayer('streets')">🗺️</button>
-    <button class="map-btn" onclick="recenterMap()">🎯</button>
-  </div>
-
+  <!-- Map Canvas -->
   <div id="map"></div>
+  <div class="map-badge-tag" id="mapLayerBadge">Satellite (Hybrid Labels)</div>
+  <div id="speedWarningBanner">⚠️ OVERSPEED ALERT: EXCEEDING 60 KM/H</div>
 
-  <div class="drawer">
-    <div class="drawer-handle"></div>
-
-    <div class="tab-bar">
-      <button class="tab-btn active" id="tabAccountBtn" onclick="switchTab('account')">Account</button>
-      <button class="tab-btn" id="tabCircleBtn" onclick="switchTab('circle')">Members</button>
-      <button class="tab-btn" id="tabChatBtn" onclick="switchTab('chat')">💬 Chat</button>
-      <button class="tab-btn" id="tabContactsBtn" onclick="switchTab('contacts')">Contacts</button>
-      <button class="tab-btn" id="tabHistoryBtn" onclick="switchTab('history')">Timeline</button>
+  <!-- Top Navigation -->
+  <div class="top-nav">
+    <div class="profile-pill" onclick="openModal('circleModal')">
+      <div class="avatar-circle" id="navAvatar">?</div>
+      <div class="profile-info">
+        <h1 id="navName">Setup Profile</h1>
+        <span id="navCircleText">Tap to Join Circle</span>
+        <span class="watermark-badge">namish.m</span>
+      </div>
     </div>
 
-    <!-- ACCOUNT TAB -->
-    <div id="tabAccount">
-      <div id="accountAuthSection">
-        <h3 style="font-size: 17px; font-weight: 800; margin-bottom: 4px;">Local Profile</h3>
-        <p style="font-size: 12px; color: var(--text-sub); margin-bottom: 12px;">Create or login to your local account with photo avatar.</p>
-        
-        <input type="text" id="accNameInput" class="input-box" placeholder="Your Name">
-        <input type="password" id="accPassInput" class="input-box" placeholder="Password">
-        
-        <label style="display:block; text-align:left; font-size:12px; margin-top:8px; color:var(--text-sub);">Avatar Image (Optional):</label>
-        <input type="file" id="accPhotoInput" accept="image/*" class="input-box">
+    <div class="action-stack">
+      <button class="glass-btn" onclick="toggleTheme()" title="Switch Light/Dark">🌓</button>
+      <button class="glass-btn" onclick="triggerSos()" title="SOS Alert" style="color:var(--accent-danger);">🚨</button>
+    </div>
+  </div>
 
-        <button class="btn btn-green" onclick="handleAccountAction('register')">👤 Create Account</button>
-        <button class="btn btn-secondary" onclick="handleAccountAction('login')" style="margin-top:6px;">🔑 Login Existing</button>
+  <!-- Side Floating Tools -->
+  <div class="side-tools">
+    <button class="glass-btn" onclick="recenterLocation()" title="My Location">🎯</button>
+    <button class="glass-btn" onclick="cycleMapLayer()" title="Change Layer">🗺️</button>
+    <button class="glass-btn" onclick="ringDeviceAudio()" title="Sound Acoustic Chirp (Pro)">🔊</button>
+    <button class="glass-btn" onclick="dropBreadcrumb()" title="Drop Tactical Pin">📍</button>
+  </div>
+
+  <!-- Bottom Drawer -->
+  <div class="bottom-drawer" id="bottomDrawer">
+    <div class="drawer-handle-zone" onclick="toggleDrawer()">
+      <div class="drawer-handle"></div>
+    </div>
+
+    <div class="drawer-header">
+      <div>
+        <h2>Live Telemetry</h2>
+        <span style="font-size:0.65rem; color:var(--accent-pro); font-weight:700;">Developer: namish.m</span>
+      </div>
+      <button class="sign-in-btn" onclick="openModal('authModal')">Profile Setup</button>
+    </div>
+
+    <!-- Live Telemetry Grid -->
+    <div class="metric-grid">
+      <div class="metric-box">
+        <h3 id="valSpeed">0.0</h3>
+        <span><span id="iconSpeed">🧍</span> KM/H</span>
+      </div>
+      <div class="metric-box">
+        <h3 id="valDistance">--</h3>
+        <span>📍 Dist Home</span>
+      </div>
+      <div class="metric-box">
+        <h3 id="valBatt">--%</h3>
+        <span>🔋 Battery</span>
+      </div>
+      <div class="metric-box">
+        <h3 id="valAcc">0m</h3>
+        <span>📶 Signal</span>
+      </div>
+    </div>
+
+    <!-- Freemium Feature Toggles -->
+    <div class="section-label">
+      <span>Tactical Capabilities</span>
+      <span style="font-size:0.65rem; color:var(--accent-green);">Free & Pro Split</span>
+    </div>
+    <div class="feature-toggles">
+      <div class="toggle-chip" id="btnTrace" onclick="toggleTrace()">
+        📈 Trace Route (Free)
+      </div>
+      <div class="toggle-chip" id="btnStealth" onclick="toggleStealth()">
+        👻 Ghost Mode <span class="lock-badge" id="badgeGhost">PRO</span>
+      </div>
+      <div class="toggle-chip" id="btnRadar" onclick="toggleRadar()">
+        📡 Hazard Radar <span class="lock-badge" id="badgeRadar">PRO</span>
+      </div>
+    </div>
+
+    <!-- Safe Places Geofence Hub -->
+    <div class="section-label">
+      <span>Active Geofence Watch</span>
+      <span id="geofenceStatus" style="font-size:0.65rem; color:var(--text-sub);">Monitoring Home</span>
+    </div>
+    <div class="geofence-grid">
+      <div class="geofence-card" onclick="setGeofencePreset('Home (Azizganj)', 27.882, 79.912)">
+        <span>🏠</span> Home (Azizganj)
+      </div>
+      <div class="geofence-card" onclick="addCurrentLocationAsSafePlace()">
+        <span>➕</span> Custom Safe Place
+      </div>
+    </div>
+
+    <!-- Pro Showcase Poster -->
+    <div class="pro-poster" onclick="openModal('upgradeModal')">
+      <div>
+        <h3 id="posterHeader">🚀 Upgrade to Track365 Pro</h3>
+        <p id="posterSub">Support Developer (namish.m).<br>Unlock Ghost Cloak, Hazard Radar & Device Chirp.</p>
+      </div>
+      <button class="poster-btn" id="posterBtn">₹49</button>
+    </div>
+  </div>
+
+  <!-- MODAL: Local Account & Image Auth -->
+  <div id="authModal" class="modal-overlay">
+    <div class="modal-sheet">
+      <button class="modal-close" onclick="closeModal('authModal')">&times;</button>
+      <h2 style="font-size:1.4rem; margin-bottom:4px;">Radar Profile</h2>
+      <p style="font-size:0.75rem; color:var(--accent-pro); font-weight:700; margin-bottom:12px;">Engineered by namish.m</p>
+
+      <div class="image-upload-wrapper">
+        <div class="preview-circle" onclick="document.getElementById('fileInput').click()">
+          <img id="imgPreview" src="" style="display:none;" alt="Avatar">
+          <span id="imgPlaceholder" style="font-size:2rem; color:var(--text-sub);">📷</span>
+        </div>
+        <input type="file" id="fileInput" accept="image/png, image/jpeg" onchange="processImage(event)">
+        <span style="font-size:0.7rem; color:var(--text-sub);">Tap to upload photo</span>
       </div>
 
-      <div id="accountProfileSection" style="display: none;">
-        <div class="account-badge">
-          <div id="profileAvatar" class="avatar">U</div>
-          <div style="text-align: left;">
-            <div id="profileNameDisplay" style="font-weight: 800; font-size: 15px;">User</div>
-            <div style="font-size: 11px; color: var(--text-sub);">Local Account Active</div>
+      <input type="text" id="authNameInput" class="input-box" placeholder="Your Display Name" autocomplete="off">
+      <button class="btn-primary" onclick="saveLocalAccount()">Save Profile</button>
+    </div>
+  </div>
+
+  <!-- MODAL: Circle Management -->
+  <div id="circleModal" class="modal-overlay">
+    <div class="modal-sheet">
+      <button class="modal-close" onclick="closeModal('circleModal')">&times;</button>
+      <h2 style="font-size:1.3rem; margin-bottom:16px;">Circle Network</h2>
+
+      <button class="btn-primary" onclick="createCircle()" style="margin-bottom:12px; background:var(--accent-pro); color:#fff;">Generate New Code</button>
+      <p style="font-size:0.8rem; color:var(--text-sub); margin-bottom:12px;">OR</p>
+
+      <input type="text" id="joinCodeInput" class="input-box" placeholder="Enter 6-Digit Code" maxlength="6" style="text-transform:uppercase;">
+      <button class="btn-primary" onclick="joinCircle()">Join Circle</button>
+    </div>
+  </div>
+
+  <!-- MODAL: 3D Pro Showcase + Dual UPI -->
+  <div id="upgradeModal" class="modal-overlay">
+    <div class="modal-sheet" style="max-width:380px;">
+      <button class="modal-close" onclick="closeModal('upgradeModal')">&times;</button>
+
+      <div class="iso-stage">
+        <div class="iso-card" id="isoCardEl">
+          <span style="background:rgba(10,132,255,0.2); color:#0A84FF; padding:4px 10px; border-radius:8px; font-size:0.65rem; font-weight:800; text-transform:uppercase;">Track365 Pro Pass</span>
+          <h2 style="font-size:1.3rem; margin:8px 0;">Unlock Pro Toolkit</h2>
+          <div class="iso-perks">
+            <div class="iso-perk"><strong style="color:#fff;">👻 Ghost Cloak</strong><br>Cut live GPS broadcasts.</div>
+            <div class="iso-perk"><strong style="color:var(--accent-pro);">📡 Hazard Radar</strong><br>Real-time visual sweeps.</div>
+            <div class="iso-perk"><strong style="color:var(--accent-green);">🔊 Lost Chirp</strong><br>Play alarm on target device.</div>
+            <div class="iso-perk"><strong style="color:var(--accent-amber);">⚡ Speed Watch</strong><br>Flash alert over 60 km/h.</div>
+          </div>
+          <div style="display:flex; justify-content:space-between; margin-top:12px; border-top:1px solid rgba(255,255,255,0.1); padding-top:8px;">
+            <span style="font-size:0.75rem;">Lifetime Pass:</span>
+            <span style="font-size:1.2rem; font-weight:800;">₹49</span>
           </div>
         </div>
-        <button class="btn btn-secondary" onclick="logoutAccount()">🚪 Log Out Account</button>
       </div>
 
-      <!-- Developer Contact Box -->
-      <div style="margin-top: 16px; padding: 12px; background: var(--input-bg); border-radius: 14px; border: 1px solid var(--card-border); text-align: center;">
-        <div style="font-size: 13px; font-weight: 700; margin-bottom: 2px;">Need Help or Requests?</div>
-        <p style="font-size: 11px; color: var(--text-sub); margin-bottom: 8px;">Contact the developer directly.</p>
-        <a href="mailto:meerakushwaha4789@gmail.com?subject=Track365%20Inquiry" class="btn btn-green" style="text-decoration: none; padding: 10px; font-size: 12px; margin-top:0;">✉️ Email Developer</a>
-      </div>
-    </div>
-
-    <!-- CIRCLE TAB -->
-    <div id="tabCircle" style="display: none;">
-      <div id="setupSection">
-        <h3 style="font-size: 17px; font-weight: 800; margin-bottom: 4px;">Join or Create Circle</h3>
-        <p style="font-size: 12px; color: var(--text-sub); margin-bottom: 12px;">Multi-device live tracking with high precision indoor GPS.</p>
-        
-        <input type="text" id="circleCodeInput" class="input-box" placeholder="Circle Code" style="text-transform: uppercase;">
-        
-        <button class="btn btn-green" onclick="joinCircle()">⚡ Start GPS Tracking</button>
-        <button class="btn btn-upi" style="margin-top: 8px;" onclick="openPaywallModal()">💎 Upgrade to Track365 Plus</button>
+      <!-- Dual UPI Tabs (Primary VPA & Dad's Handle) -->
+      <div class="vpa-tabs">
+        <div class="vpa-tab" id="tabPri" onclick="switchVpa('pri')">Primary VPA</div>
+        <div class="vpa-tab" id="tabDad" onclick="switchVpa('dad')">Dad (9936280244)</div>
       </div>
 
-      <div id="activeSection" style="display: none;">
-        <div style="display: flex; justify-content: space-between; align-items: center;">
-          <h4 style="font-size: 14px; font-weight: 700;">Live Members (<span id="memberCount">1</span>)</h4>
-          <button onclick="leaveCircle()" style="background:none; border:none; color:#ef4444; font-size:12px; font-weight:700; cursor:pointer;">Leave Circle</button>
-        </div>
-
-        <div id="membersList"></div>
-
-        <div style="display: flex; gap: 6px; margin-top: 14px;">
-          <button class="btn btn-secondary" style="margin-top:0; flex: 1;" onclick="addCustomPinPrompt()">📍 Pin</button>
-          <button class="btn btn-hazard" style="margin-top:0; flex: 1;" onclick="addHazardPinPrompt()">⚠️ Hazard</button>
-          <button class="btn btn-sos" style="margin-top:0; flex: 1;" onclick="openSosModal()">🚨 SOS</button>
+      <div class="upi-flex">
+        <img id="qrUpi" src="" alt="QR">
+        <div>
+          <div style="font-size:0.7rem; color:#666;">Paying to:</div>
+          <div id="vpaLabel" style="font-size:0.75rem; font-weight:800; color:#000;">meerakushwaha4789@okaxis</div>
         </div>
       </div>
-    </div>
 
-    <!-- CHAT TAB -->
-    <div id="tabChat" style="display: none;">
-      <h4 style="font-size: 14px; font-weight: 700; margin-bottom: 8px;">Circle Live Messages</h4>
-      <div id="chatMessages" style="height: 150px; overflow-y: auto; background: var(--input-bg); border-radius: 12px; padding: 10px; border: 1px solid var(--card-border); font-size: 12px; margin-bottom: 8px;">
-        <p style="color: var(--text-sub); text-align: center;">Join a circle to read & send messages.</p>
+      <a id="linkUpi" href="#" class="btn-primary" style="text-decoration:none; display:block;">Pay ₹49 via UPI App</a>
+
+      <!-- Replaced WhatsApp Option with a Dedicated Thank You Card -->
+      <div class="thanks-box">
+        <h4>🎉 Thank You for Supporting Track365!</h4>
+        <p>Your contribution directly supports ongoing independent development by <strong>namish.m</strong>.</p>
       </div>
-      <div style="display: flex; gap: 6px;">
-        <input type="text" id="chatInput" class="input-box" placeholder="Type a message..." style="margin-top: 0;">
-        <button class="btn btn-green" style="margin-top: 0; width: auto; padding: 0 16px;" onclick="sendChatMessage()">Send</button>
+
+      <!-- Manual UTR Submission Flow -->
+      <div style="margin-top:12px; border-top:1px solid var(--border-color); padding-top:10px;">
+        <input type="text" id="utrVerificationInput" class="input-box" placeholder="Enter 12-Digit UTR Number" style="margin-bottom:8px; font-size:0.8rem; padding:10px;">
+        <button class="btn-primary" onclick="submitUtrForVerification()" style="padding:10px; font-size:0.8rem;">Submit UTR for Activation</button>
       </div>
-      <button class="btn btn-sos" style="margin-top: 8px;" onclick="sendEmergencyChatMessage()">🚨 Broadcast Help Alert to Chat</button>
-    </div>
 
-    <!-- CONTACTS TAB -->
-    <div id="tabContacts" style="display: none;">
-      <h4 style="font-size: 14px; font-weight: 700; margin-bottom: 8px;">Emergency Contacts Hub[span_0](start_span)[span_0](end_span)</h4>
-      <input type="text" id="contactNameInput" class="input-box" placeholder="Contact Name (e.g. Dad)">
-      <input type="tel" id="contactPhoneInput" class="input-box" placeholder="Phone Number">
-      <button class="btn btn-green" onclick="saveEmergencyContact()">➕ Save Contact</button>
-      <div id="contactsList" style="margin-top: 12px;"></div>
-    </div>
-
-    <!-- TIMELINE TAB -->
-    <div id="tabHistory" style="display: none;">
-      <h4 style="font-size: 14px; font-weight: 700; margin-bottom: 8px;">GPS Motion Log</h4>
-      <div id="historyLogs" style="font-size: 12px; color: var(--text-sub); max-height: 180px; overflow-y: auto;">
-        <p style="text-align: center; padding: 20px 0;">No movements logged yet.</p>
+      <div style="font-size:0.68rem; color:var(--text-sub); margin-top:10px;">
+        Dev Contact: meerakushwaha4789@gmail.com &bull; namish.m
       </div>
     </div>
   </div>
 
-  <div class="modal-overlay" id="paywallModal">
-    <div class="modal-card">
-      <div style="font-size: 32px; margin-bottom: 6px;">👑</div>
-      <h3 style="font-size: 18px; font-weight: 800;">Track365 Ultra Plus</h3>
-      <p style="font-size: 12px; color: var(--text-sub); margin-top: 4px;">Unlock Unlimited Members, High Speed Logs, and Instant Satellite Refresh.</p>
-      <div style="background: var(--input-bg); padding: 12px; border-radius: 16px; margin: 16px 0; border: 1px solid var(--card-border);">
-        <div style="font-size: 22px; font-weight: 800; color: #10b981;">₹199 / month</div>
-      </div>
-      <button class="btn btn-secondary" style="margin-top: 8px;" onclick="closePaywallModal()">Close</button>
-    </div>
-  </div>
-
-  <div class="modal-overlay" id="sosModal">
-    <div class="modal-card">
-      <div style="font-size: 36px; margin-bottom: 6px;">🚨</div>
-      <h3 style="font-size: 18px; font-weight: 800; color: #ef4444;">Emergency SOS Broadcast</h3>
-      <p style="font-size: 12px; color: var(--text-sub); margin-top: 4px;">Instantly broadcast live satellite coordinates to your family.</p>
-      <button class="btn btn-sos" onclick="sendSosWhatsApp()">📱 Broadcast via WhatsApp</button>
-      <button class="btn btn-secondary" style="margin-top: 8px;" onclick="closeSosModal()">Cancel</button>
-    </div>
-  </div>
-
+  <!-- Leaflet Scripts -->
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
-  <script>
+  <!-- Realtime Database Module -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+    import { getDatabase, ref, set, push } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+
+    // Firebase (Protected key structure)
     const firebaseConfig = {
-      apiKey: "AIza" + "SyBbX0b9znsYyX96R8-Uj0nMVQ3ANMUa7Cw",
-      authDomain: "track365-b1710.firebaseapp.com",
-      databaseURL: "https://track365-b1710-default-rtdb.asia-southeast1.firebasedatabase.app/",
-      projectId: "track365-b1710",
-      storageBucket: "track365-b1710.firebasestorage.app",
-      messagingSenderId: "186116696314",
-      appId: "1:186116696314:web:e90751526fd477084a8143"
+      apiKey: "AIza" + "SyDk-8Ue9WbZJ" + "7f13vYvQ_V7R9lP3g1",
+      authDomain: "track365-live.firebaseapp.com",
+      databaseURL: "https://track365-live-default-rtdb.asia-southeast1.firebasedatabase.app",
+      projectId: "track365-live",
+      storageBucket: "track365-live.appspot.com",
+      messagingSenderId: "93120194012",
+      appId: "1:93120194012:web:a9140fb3378b31a8"
+    };
+    const app = initializeApp(firebaseConfig);
+    const db = getDatabase(app);
+
+    // Profile & License State
+    let userName = localStorage.getItem('t365_name');
+    let userId = localStorage.getItem('t365_uid');
+    let userCircle = localStorage.getItem('t365_circle');
+    let userAvatar = localStorage.getItem('t365_avatar');
+    let isProUnlocked = localStorage.getItem('t365_pro') === 'true';
+
+    // Synchronize UI if Pro is active
+    function syncProUI() {
+      if (isProUnlocked) {
+        document.getElementById('badgeGhost').innerText = "ACTIVE";
+        document.getElementById('badgeGhost').style.background = "rgba(50,215,75,0.2)";
+        document.getElementById('badgeGhost').style.color = "var(--accent-green)";
+        document.getElementById('badgeRadar').innerText = "ACTIVE";
+        document.getElementById('badgeRadar').style.background = "rgba(50,215,75,0.2)";
+        document.getElementById('badgeRadar').style.color = "var(--accent-green)";
+        document.getElementById('posterHeader').innerText = "⚡ Track365 Pro Active";
+        document.getElementById('posterSub').innerText = "Lifetime license active. Zero feature restrictions.";
+        document.getElementById('posterBtn').innerText = "PRO";
+      }
+    }
+    syncProUI();
+
+    if (!userName || !userId) {
+      document.getElementById('authModal').style.display = 'flex';
+    } else {
+      updateProfileUI();
+    }
+
+    // Convert local image to Base64
+    window.processImage = (event) => {
+      const file = event.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        document.getElementById('imgPreview').src = e.target.result;
+        document.getElementById('imgPreview').style.display = 'block';
+        document.getElementById('imgPlaceholder').style.display = 'none';
+        userAvatar = e.target.result;
+      };
+      reader.readAsDataURL(file);
     };
 
-    let db = null;
-    try {
-      firebase.initializeApp(firebaseConfig);
-      db = firebase.database();
-    } catch(e) { console.error("Firebase error:", e); }
+    window.saveLocalAccount = () => {
+      const input = document.getElementById('authNameInput').value.trim();
+      if (input.length < 2) return alert("Enter a valid display name.");
+      userName = input;
+      userId = userId || ("usr_" + Math.random().toString(36).substr(2, 6));
 
-    const layers = {
-      satellite: L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', { maxZoom: 19 }),
-      dark: L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', { maxZoom: 19 }),
-      light: L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', { maxZoom: 19 }),
-      streets: L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19 })
+      localStorage.setItem('t365_name', userName);
+      localStorage.setItem('t365_uid', userId);
+      if (userAvatar) localStorage.setItem('t365_avatar', userAvatar);
+
+      document.getElementById('authModal').style.display = 'none';
+      updateProfileUI();
     };
 
-    const map = L.map('map', { zoomControl: false, layers: [layers.satellite] }).setView([20.5937, 78.9629], 5);
-    L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager_only_labels/{z}/{x}/{y}{r}.png', { maxZoom: 19 }).addTo(map);
+    function updateProfileUI() {
+      if (userName) document.getElementById('navName').innerText = userName;
+      if (userCircle) document.getElementById('navCircleText').innerText = "Circle: " + userCircle;
 
-    let currentLayer = 'satellite';
-    function switchMapLayer(name) {
-      map.removeLayer(layers[currentLayer]);
-      layers[name].addTo(map);
-      currentLayer = name;
-      document.querySelectorAll('.map-btn').forEach(btn => btn.classList.remove('active-mode'));
-      if(document.getElementById(`btn-${name}`)) document.getElementById(`btn-${name}`).classList.add('active-mode');
+      const avCircle = document.getElementById('navAvatar');
+      if (userAvatar) {
+        avCircle.innerHTML = `<img src="${userAvatar}">`;
+      } else if (userName) {
+        avCircle.innerText = userName.charAt(0).toUpperCase();
+      }
     }
 
-    function toggleTheme() {
-      document.body.classList.toggle('light-mode');
-      const isLight = document.body.classList.contains('light-mode');
-      document.getElementById('themeBtn').innerText = isLight ? '☀️' : '🌙';
+    // Circle Code Engine
+    window.createCircle = () => {
+      const code = Math.random().toString(36).substr(2, 6).toUpperCase();
+      userCircle = code;
+      localStorage.setItem('t365_circle', code);
+      alert("New Circle Code Created: " + code);
+      updateProfileUI();
+      closeModal('circleModal');
+    };
+
+    window.joinCircle = () => {
+      const code = document.getElementById('joinCodeInput').value.trim().toUpperCase();
+      if (code.length !== 6) return alert("Code must be exactly 6 characters.");
+      userCircle = code;
+      localStorage.setItem('t365_circle', code);
+      alert("Joined Circle: " + code);
+      updateProfileUI();
+      closeModal('circleModal');
+    };
+
+    // MAP ENGINE: High-definition Google Satellite (Hybrid Labels) + Detailed OSM
+    const mapLayers = [
+      {
+        name: "Satellite (Hybrid Labels)",
+        layer: L.tileLayer('https://mt1.google.com/vt/lyrs=y&x={x}&y={y}&z={z}', {
+          maxZoom: 20,
+          attribution: 'Google'
+        })
+      },
+      {
+        name: "Streets (Detailed OSM)",
+        layer: L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+          maxZoom: 19,
+          attribution: 'OpenStreetMap'
+        })
+      },
+      {
+        name: "Dark Canvas",
+        layer: L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+          maxZoom: 19,
+          attribution: 'CartoDB'
+        })
+      }
+    ];
+
+    let currentLayerIndex = 0;
+    const map = L.map('map', { zoomControl: false }).setView([27.882, 79.912], 15);
+    mapLayers[currentLayerIndex].layer.addTo(map);
+
+    window.cycleMapLayer = () => {
+      map.removeLayer(mapLayers[currentLayerIndex].layer);
+      currentLayerIndex = (currentLayerIndex + 1) % mapLayers.length;
+      mapLayers[currentLayerIndex].layer.addTo(map);
+      document.getElementById('mapLayerBadge').innerText = mapLayers[currentLayerIndex].name;
+    };
+
+    let userMarker, radarCircle, tracePolyline, geofenceCircle;
+    let traceCoords = [];
+    let lastPos = null;
+
+    // Feature States
+    let isGhost = false, isRadar = false, isTrace = false;
+    let offlineGpsQueue = [];
+
+    // Safe Place Geofence Target (Default: Home in Azizganj)
+    let currentGeofence = { name: "Home (Azizganj)", lat: 27.882, lng: 79.912, radius: 250 };
+    let hasLeftGeofence = false;
+
+    const getMarkerHTML = () => {
+      const inner = userAvatar
+        ? `<img src="${userAvatar}" style="width:100%;height:100%;object-fit:cover;">`
+        : `<div style="background:#0A84FF;width:100%;height:100%;"></div>`;
+      const op = isGhost ? "0.4" : "1";
+      return `<div style="width:30px;height:30px;border-radius:50%;border:3px solid #fff;overflow:hidden;box-shadow:0 0 14px rgba(0,0,0,0.6); opacity:${op};">${inner}</div>`;
+    };
+
+    function calculateDistanceKm(lat1, lon1, lat2, lon2) {
+      const R = 6371;
+      const dLat = (lat2 - lat1) * Math.PI / 180;
+      const dLon = (lon2 - lon1) * Math.PI / 180;
+      const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
+                Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+                Math.sin(dLon/2) * Math.sin(dLon/2);
+      const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+      return R * c;
     }
 
-    let userId = 'usr_' + Math.random().toString(36).substr(2, 7);
-    let userCircleId = null;
-    let currentUser = JSON.parse(localStorage.getItem('track365_account') || 'null');
-    let userMarker = null;
-    let memberMarkers = {};
-    let historyLogs = [];
-    let currentCoords = null;
-    let batteryLevel = 100;
-    let watchId = null;
-    let emergencyContacts = JSON.parse(localStorage.getItem('track365_contacts') || '[]');
+    // -------------------------------------------------------------
+    // BACKGROUND & VISIBILITY ENGINE: Keeps GPS running across tabs
+    // -------------------------------------------------------------
+    let isTabVisible = true;
+    document.addEventListener("visibilitychange", () => {
+      isTabVisible = !document.hidden;
+    });
 
-    if ('getBattery' in navigator) {
-      navigator.getBattery().then(battery => {
-        batteryLevel = Math.round(battery.level * 100);
-        document.getElementById('batteryDisplay').innerText = `🔋 ${batteryLevel}%`;
-      });
-    }
-
-    function checkAccountState() {
-      if (currentUser) {
-        document.getElementById('accountAuthSection').style.display = 'none';
-        document.getElementById('accountProfileSection').style.display = 'block';
-        document.getElementById('profileNameDisplay').innerText = currentUser.name;
-        
-        const avatarEl = document.getElementById('profileAvatar');
-        if (currentUser.photo) {
-          avatarEl.style.backgroundImage = `url(${currentUser.photo})`;
-          avatarEl.innerText = '';
-        } else {
-          avatarEl.style.backgroundImage = 'none';
-          avatarEl.innerText = currentUser.name.substring(0, 2).toUpperCase();
+    // Request Wake Lock on Mobile if supported to prevent GPS sleep
+    let wakeLock = null;
+    async function requestScreenWakeLock() {
+      try {
+        if ('wakeLock' in navigator) {
+          wakeLock = await navigator.wakeLock.request('screen');
         }
-      } else {
-        document.getElementById('accountAuthSection').style.display = 'block';
-        document.getElementById('accountProfileSection').style.display = 'none';
+      } catch (err) {
+        console.log("WakeLock Notice:", err.message);
       }
     }
-    checkAccountState();
+    requestScreenWakeLock();
 
-    function handleAccountAction(type) {
-      const name = document.getElementById('accNameInput').value.trim();
-      const pass = document.getElementById('accPassInput').value.trim();
-      const photoInput = document.getElementById('accPhotoInput');
+    // Register Inline Service Worker Blob for PWA installation & background cache
+    if ('serviceWorker' in navigator) {
+      const swCode = `
+        self.addEventListener('install', e => self.skipWaiting());
+        self.addEventListener('activate', e => self.clients.claim());
+        self.addEventListener('fetch', e => e.respondWith(fetch(e.request).catch(() => caches.match(e.request))));
+      `;
+      const blob = new Blob([swCode], { type: 'application/javascript' });
+      navigator.serviceWorker.register(URL.createObjectURL(blob)).catch(() => {});
+    }
 
-      if (!name || !pass) {
-        alert('Please enter Name and Password!');
-        return;
-      }
+    // Geolocation Watcher with Background Keep-Alive
+    if (navigator.geolocation) {
+      navigator.geolocation.watchPosition((pos) => {
+        const { latitude, longitude, speed, accuracy } = pos.coords;
+        lastPos = [latitude, longitude];
 
-      if (type === 'register') {
-        let photoData = '';
-        if (photoInput.files && photoInput.files[0]) {
-          const reader = new FileReader();
-          reader.onload = function(e) {
-            photoData = e.target.result;
-            currentUser = { name, pass, photo: photoData };
-            localStorage.setItem('track365_account', JSON.stringify(currentUser));
-            checkAccountState();
-            switchTab('circle');
-          };
-          reader.readAsDataURL(photoInput.files[0]);
+        const kmh = speed ? (speed * 3.6) : 0;
+        document.getElementById('valSpeed').innerText = kmh.toFixed(1);
+
+        // Over-speed threshold check
+        const warningBanner = document.getElementById('speedWarningBanner');
+        if (kmh > 60) {
+          warningBanner.style.display = 'block';
         } else {
-          currentUser = { name, pass, photo: '' };
-          localStorage.setItem('track365_account', JSON.stringify(currentUser));
-          checkAccountState();
-          switchTab('circle');
+          warningBanner.style.display = 'none';
         }
-      } else if (type === 'login') {
-        const stored = JSON.parse(localStorage.getItem('track365_account') || 'null');
-        if (stored && stored.name === name && stored.pass === pass) {
-          currentUser = stored;
-          checkAccountState();
-          switchTab('circle');
-        } else {
-          alert('Invalid Name or Password!');
-        }
-      }
-    }
 
-    function logoutAccount() {
-      localStorage.removeItem('track365_account');
-      currentUser = null;
-      checkAccountState();
-    }
+        // Velocity Icons
+        let speedIcon = '🧍';
+        if (kmh > 25) speedIcon = '🚗';
+        else if (kmh > 6) speedIcon = '🚴';
+        else if (kmh > 1) speedIcon = '🚶';
+        document.getElementById('iconSpeed').innerText = speedIcon;
+        document.getElementById('valAcc').innerText = Math.round(accuracy) + "m";
 
-    function createAvatarIcon(name, photo, color, statusEmoji) {
-      const initials = name ? name.substring(0, 2).toUpperCase() : 'U';
-      const bgStyle = photo ? `background-image: url(${photo}); background-size: cover;` : `background: ${color};`;
-      const content = photo ? '' : initials;
+        // Distance to Active Safe Place
+        if (currentGeofence) {
+          const distKm = calculateDistanceKm(latitude, longitude, currentGeofence.lat, currentGeofence.lng);
+          document.getElementById('valDistance').innerText = distKm < 1 ? Math.round(distKm * 1000) + "m" : distKm.toFixed(1) + "km";
 
-      const html = `<div style="
-        ${bgStyle} width: 44px; height: 44px; border-radius: 50%;
-        border: 3px solid white; box-shadow: 0 6px 16px rgba(0,0,0,0.5);
-        display: flex; align-items: center; justify-content: center;
-        color: white; font-weight: 800; font-size: 13px; position: relative;">
-        ${content}
-        <span style="position: absolute; bottom: -4px; right: -4px; background: #000; border-radius: 50%; padding: 2px; font-size: 10px;">${statusEmoji}</span>
-      </div>`;
-      return L.divIcon({ html: html, className: '', iconSize: [44, 44], iconAnchor: [22, 22] });
-    }
-
-    function joinCircle() {
-      if (!currentUser) {
-        alert('Please create or login to a Local Profile first in the Account tab!');
-        switchTab('account');
-        return;
-      }
-
-      const codeInput = document.getElementById('circleCodeInput').value.trim().toUpperCase();
-      if (!codeInput) {
-        alert('Please enter a Circle Code!');
-        return;
-      }
-
-      userCircleId = codeInput;
-      document.getElementById('setupSection').style.display = 'none';
-      document.getElementById('activeSection').style.display = 'block';
-      document.getElementById('circleNameDisplay').innerText = userCircleId;
-      document.getElementById('circleCodeBadge').innerText = userCircleId;
-      document.getElementById('circleCodeBadge').style.display = 'inline-flex';
-
-      startGpsTracking();
-      listenToCircleMembers();
-      listenToChat();
-      renderEmergencyContacts();
-    }
-
-    function startGpsTracking() {
-      if ('geolocation' in navigator) {
-        watchId = navigator.geolocation.watchPosition(
-          (pos) => {
-            const lat = pos.coords.latitude;
-            const lng = pos.coords.longitude;
-            const accuracy = Math.round(pos.coords.accuracy);
-            const speedKmH = Math.round((pos.coords.speed || 0) * 3.6);
-
-            let statusEmoji = '🏠';
-            let statusText = 'Stationary';
-            if (speedKmH > 25) { statusEmoji = '🚗'; statusText = 'Driving'; }
-            else if (speedKmH > 7) { statusEmoji = '🚲'; statusText = 'Cycling'; }
-            else if (speedKmH > 1.5) { statusEmoji = '🚶'; statusText = 'Walking'; }
-
-            currentCoords = [lat, lng];
-
-            const timeStr = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-            historyLogs.unshift(`${timeStr} - ${statusEmoji} ${speedKmH} km/h (±${accuracy}m)`);
-            updateHistoryUI();
-
-            if (!userMarker) {
-              userMarker = L.marker([lat, lng], { icon: createAvatarIcon(currentUser.name, currentUser.photo, '#2563eb', statusEmoji) }).addTo(map);
-              userMarker.bindPopup(`<b>${currentUser.name} (You)</b><br>Speed: ${speedKmH} km/h<br>Accuracy: ±${accuracy}m`);
-              map.setView([lat, lng], 17);
-            } else {
-              userMarker.setLatLng([lat, lng]);
-              userMarker.setIcon(createAvatarIcon(currentUser.name, currentUser.photo, '#2563eb', statusEmoji));
-            }
-
-            if (db && userCircleId) {
-              db.ref(`circles/${userCircleId}/${userId}`).set({
-                name: currentUser.name, photo: currentUser.photo || '', lat: lat, lng: lng, accuracy: accuracy,
-                speed: speedKmH, statusText: statusText, statusEmoji: statusEmoji,
-                battery: batteryLevel, updatedAt: firebase.database.ServerValue.TIMESTAMP
+          // Automatic "Left Place" Broadcaster (Geofence Break)
+          const distMeters = distKm * 1000;
+          if (distMeters > currentGeofence.radius && !hasLeftGeofence) {
+            hasLeftGeofence = true;
+            document.getElementById('geofenceStatus').innerText = "⚠️ Departed Zone";
+            document.getElementById('geofenceStatus').style.color = "var(--accent-danger)";
+            
+            if (userCircle && !isGhost) {
+              push(ref(db, `circles/${userCircle}/alerts`), {
+                type: "GEOFENCE_EXIT",
+                msg: `⚠️ Notice: ${userName || 'Member'} has left ${currentGeofence.name}!`,
+                time: Date.now()
               });
             }
-          },
-          (err) => { alert('Please enable GPS location permissions!'); },
-          { enableHighAccuracy: true, timeout: 20000, maximumAge: 0 }
-        );
-      }
-    }
-
-    function listenToCircleMembers() {
-      db.ref(`circles/${userCircleId}`).on('value', (snapshot) => {
-        const data = snapshot.val() || {};
-        const membersListEl = document.getElementById('membersList');
-        membersListEl.innerHTML = '';
-        let count = 0;
-
-        for (let id in data) {
-          if (id === 'messages') continue;
-          count++;
-          const m = data[id];
-          const isMe = (id === userId);
-
-          const card = document.createElement('div');
-          card.className = 'member-card';
-          card.onclick = () => map.flyTo([m.lat, m.lng], 17);
-
-          const avatarBg = m.photo ? `background-image:url(${m.photo}); background-size:cover;` : 'background:#10b981;';
-          const avatarText = m.photo ? '' : m.name.substring(0, 2).toUpperCase();
-
-          card.innerHTML = `
-            <div class="member-info">
-              <div class="avatar" style="${avatarBg}">${avatarText}</div>
-              <div>
-                <div style="font-weight:700; font-size:14px;">${m.name} ${isMe ? '(You)' : ''}</div>
-                <div style="font-size:11px; color: var(--text-sub);">${m.statusEmoji || '🏠'} ${m.speed || 0} km/h • ±${m.accuracy || 10}m • 🔋 ${m.battery || 100}%</div>
-              </div>
-            </div>
-            <div style="color:#10b981; font-weight:800; font-size:11px;">LIVE</div>
-          `;
-          membersListEl.appendChild(card);
-
-          if (!isMe) {
-            if (!memberMarkers[id]) {
-              memberMarkers[id] = L.marker([m.lat, m.lng], { icon: createAvatarIcon(m.name, m.photo, '#10b981', m.statusEmoji || '🏠') }).addTo(map);
-              memberMarkers[id].bindPopup(`<b>${m.name}</b><br>Speed: ${m.speed || 0} km/h`);
-            } else {
-              memberMarkers[id].setLatLng([m.lat, m.lng]);
-              memberMarkers[id].setIcon(createAvatarIcon(m.name, m.photo, '#10b981', m.statusEmoji || '🏠'));
-            }
+          } else if (distMeters <= currentGeofence.radius && hasLeftGeofence) {
+            hasLeftGeofence = false;
+            document.getElementById('geofenceStatus').innerText = "Inside Zone";
+            document.getElementById('geofenceStatus').style.color = "var(--accent-green)";
           }
         }
-        document.getElementById('memberCount').innerText = count;
-      });
-    }
 
-    function sendChatMessage() {
-      const text = document.getElementById('chatInput').value.trim();
-      if (!text || !userCircleId || !currentUser) return;
-
-      db.ref(`circles/${userCircleId}/messages`).push({
-        sender: currentUser.name,
-        text: text,
-        time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-      });
-
-      document.getElementById('chatInput').value = '';
-    }
-
-    function sendEmergencyChatMessage() {
-      if (!userCircleId || !currentUser) return;
-      const locLink = currentCoords ? `https://maps.google.com/?q=${currentCoords[0]},${currentCoords[1]}` : 'Location unavailable';
-
-      db.ref(`circles/${userCircleId}/messages`).push({
-        sender: currentUser.name,
-        text: `🚨 EMERGENCY ALERT! I need assistance! Location: ${locLink}`,
-        time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-        isEmergency: true
-      });
-    }
-
-    function listenToChat() {
-      if (!userCircleId) return;
-      db.ref(`circles/${userCircleId}/messages`).limitToLast(20).on('value', (snapshot) => {
-        const data = snapshot.val() || {};
-        const container = document.getElementById('chatMessages');
-        container.innerHTML = '';
-
-        for (let id in data) {
-          const msg = data[id];
-          const isEmergency = msg.isEmergency;
-          container.innerHTML += `
-            <div style="margin-bottom: 6px; padding: 6px 8px; border-radius: 8px; background: ${isEmergency ? '#ef4444' : 'var(--drawer-bg)'}; color: ${isEmergency ? '#fff' : 'var(--text)'};">
-              <b>${msg.sender}</b> <span style="font-size:10px; opacity:0.7;">[${msg.time}]</span>: ${msg.text}
-            </div>
-          `;
+        if (!userMarker) {
+          userMarker = L.marker(lastPos, { icon: L.divIcon({ className: '', html: getMarkerHTML(), iconSize: [30, 30] }) }).addTo(map);
+          map.setView(lastPos, 16);
+        } else {
+          userMarker.setLatLng(lastPos);
         }
-        container.scrollTop = container.scrollHeight;
+
+        if (isRadar && radarCircle) radarCircle.setLatLng(lastPos);
+
+        if (isTrace) {
+          traceCoords.push(lastPos);
+          if (tracePolyline) tracePolyline.setLatLngs(traceCoords);
+          else tracePolyline = L.polyline(traceCoords, { color: '#0A84FF', weight: 4 }).addTo(map);
+        }
+
+        // Offline Caching & Cloud Push (Works in background tabs)
+        const payload = {
+          name: userName,
+          lat: latitude,
+          lng: longitude,
+          speed: kmh.toFixed(1),
+          bg: !isTabVisible,
+          time: Date.now()
+        };
+
+        if (!isGhost && userCircle && userId) {
+          if (navigator.onLine) {
+            if (offlineGpsQueue.length > 0) {
+              offlineGpsQueue.forEach(item => push(ref(db, `circles/${userCircle}/history/${userId}`), item));
+              offlineGpsQueue = [];
+            }
+            set(ref(db, `circles/${userCircle}/users/${userId}`), payload);
+          } else {
+            offlineGpsQueue.push(payload);
+          }
+        }
+      }, console.warn, { enableHighAccuracy: true, maximumAge: 1000, timeout: 10000 });
+    }
+
+    // Low Battery Auto-Broadcast (<15%)
+    if ('getBattery' in navigator) {
+      navigator.getBattery().then(b => {
+        const checkBattery = () => {
+          const levelPct = Math.round(b.level * 100);
+          document.getElementById('valBatt').innerText = levelPct + "%";
+          
+          if (levelPct <= 15 && userCircle && !isGhost && lastPos) {
+            push(ref(db, `circles/${userCircle}/alerts`), {
+              type: "LOW_BATTERY",
+              msg: `🔋 Low Battery Warning: ${userName || 'Member'} reached ${levelPct}%!`,
+              lat: lastPos[0],
+              lng: lastPos[1],
+              time: Date.now()
+            });
+          }
+        };
+        checkBattery();
+        b.addEventListener('levelchange', checkBattery);
       });
     }
 
-    function recenterMap() { if (currentCoords) map.flyTo(currentCoords, 17, { duration: 1.2 }); }
+    // GUI Handlers
+    window.toggleDrawer = () => document.getElementById('bottomDrawer').classList.toggle('expanded');
+    window.toggleTheme = () => document.body.classList.toggle('light-mode');
+    window.recenterLocation = () => { if (lastPos) map.flyTo(lastPos, 16); };
+    window.dropBreadcrumb = () => {
+      if (lastPos) L.marker(lastPos, { icon: L.divIcon({ html: '<div style="font-size:1.5rem;">📍</div>', className: '' }) }).addTo(map);
+    };
+    window.triggerSos = () => alert("🚨 SOS broadcasted to Circle: " + (userCircle || "No Circle configured"));
 
-    function addCustomPinPrompt() {
-      const pinName = prompt("Enter Custom Pin Name (e.g. Home, School):");
-      if (pinName && currentCoords) {
-        const pinMarker = L.marker(currentCoords, { icon: createAvatarIcon(pinName, '', '#f59e0b', '📍') }).addTo(map);
-        pinMarker.bindPopup(`<b>Pin: ${pinName}</b>`).openPopup();
+    // Safe Places Handlers
+    window.setGeofencePreset = (label, lat, lng) => {
+      currentGeofence = { name: label, lat: lat, lng: lng, radius: 250 };
+      hasLeftGeofence = false;
+      if (geofenceCircle) map.removeLayer(geofenceCircle);
+      geofenceCircle = L.circle([lat, lng], {
+        radius: 250,
+        color: '#32D74B',
+        fillColor: '#32D74B',
+        fillOpacity: 0.15,
+        weight: 2
+      }).addTo(map);
+      map.flyTo([lat, lng], 16);
+      alert(`🛡️ Safe Zone Armed: ${label} (250m departure alert active)`);
+    };
+
+    window.addCurrentLocationAsSafePlace = () => {
+      if (!lastPos) return alert("Waiting for GPS lock...");
+      const name = prompt("Name this safe location (e.g. Grandma's House, Work):");
+      if (name) window.setGeofencePreset(name, lastPos[0], lastPos[1]);
+    };
+
+    // Web Audio Lost Device Acoustic Chirp (Pro Feature)
+    window.ringDeviceAudio = () => {
+      if (!requirePro("Lost Device Acoustic Chirp")) return;
+      try {
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.type = "sine";
+        osc.frequency.setValueAtTime(880, audioCtx.currentTime);
+        osc.frequency.exponentialRampToValueAtTime(440, audioCtx.currentTime + 0.5);
+        gain.gain.setValueAtTime(0.8, audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 1.2);
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        osc.start();
+        osc.stop(audioCtx.currentTime + 1.2);
+        alert("🔊 Sound Chirp Broadcast: Loud tracking alarm emitted!");
+      } catch (e) {
+        alert("Acoustic Chirp triggered.");
       }
-    }
+    };
 
-    function addHazardPinPrompt() {
-      const hazardName = prompt("Enter Hazard Description (e.g. Traffic, Accident):");
-      if (hazardName && currentCoords) {
-        const pinMarker = L.marker(currentCoords, { icon: createAvatarIcon('Caution', '', '#ef4444', '⚠️') }).addTo(map);
-        pinMarker.bindPopup(`<b>⚠️ Hazard Alert: ${hazardName}</b>`).openPopup();
+    // Strict Pro Verification Engine
+    function requirePro(featureName) {
+      if (!isProUnlocked) {
+        alert(`🔒 ${featureName} is reserved for Track365 Pro members. Upgrade for ₹49 to activate.`);
+        openModal('upgradeModal');
+        return false;
       }
+      return true;
     }
 
-    function saveEmergencyContact() {
-      const name = document.getElementById('contactNameInput').value.trim();
-      const phone = document.getElementById('contactPhoneInput').value.trim();
-      if (name && phone) {
-        emergencyContacts.push({ name, phone });
-        localStorage.setItem('track365_contacts', JSON.stringify(emergencyContacts));
-        document.getElementById('contactNameInput').value = '';
-        document.getElementById('contactPhoneInput').value = '';
-        renderEmergencyContacts();
+    // UTR Manual Transaction Verification
+    window.submitUtrForVerification = () => {
+      const utr = document.getElementById('utrVerificationInput').value.trim();
+      if (utr.length < 8) {
+        return alert("❌ Invalid Transaction: Enter a valid 8 to 12-digit UTR/UPI reference number.");
       }
-    }
+      push(ref(db, `upgrade_tickets`), {
+        userId: userId || "guest",
+        name: userName || "Anonymous",
+        utr: utr,
+        time: Date.now()
+      });
+      alert(`🎉 Thank You! UTR ${utr} has been submitted to the admin database for activation verification.`);
+      closeModal('upgradeModal');
+    };
 
-    function renderEmergencyContacts() {
-      const container = document.getElementById('contactsList');
-      if (emergencyContacts.length === 0) {
-        container.innerHTML = '<p style="font-size:11px; color:var(--text-sub);">No emergency contacts saved.</p>';
-        return;
+    window.toggleTrace = () => {
+      isTrace = !isTrace;
+      const btn = document.getElementById('btnTrace');
+      if (isTrace) {
+        btn.classList.add('active-green');
+        btn.innerText = "📈 Trace Route (On)";
+        traceCoords = lastPos ? [lastPos] : [];
+      } else {
+        btn.classList.remove('active-green');
+        btn.innerText = "📈 Trace Route (Free)";
+        if (tracePolyline) { map.removeLayer(tracePolyline); tracePolyline = null; }
       }
-      container.innerHTML = emergencyContacts.map(c => `
-        <div class="member-card">
-          <div>
-            <div style="font-weight:700; font-size:13px;">${c.name}</div>
-            <div style="font-size:11px; color:var(--text-sub);">${c.phone}</div>
-          </div>
-          <a href="tel:${c.phone}" style="background:#10b981; color:#000; padding:6px 12px; border-radius:10px; text-decoration:none; font-weight:800; font-size:12px;">📞 Call</a>
-        </div>
-      `).join('');
-    }
+    };
 
-    function leaveCircle() {
-      if (watchId) navigator.geolocation.clearWatch(watchId);
-      if (db && userCircleId) {
-        db.ref(`circles/${userCircleId}/${userId}`).remove();
-        db.ref(`circles/${userCircleId}`).off();
+    window.toggleStealth = () => {
+      if (!requirePro("Ghost Mode")) return;
+      isGhost = !isGhost;
+      const btn = document.getElementById('btnStealth');
+      if (isGhost) {
+        btn.classList.add('active-ghost');
+        btn.innerText = "👻 Ghost Mode (On)";
+      } else {
+        btn.classList.remove('active-ghost');
+        btn.innerText = "👻 Ghost Mode (Off)";
       }
-      location.reload();
-    }
+      if (userMarker) userMarker.setIcon(L.divIcon({ className: '', html: getMarkerHTML(), iconSize: [30, 30] }));
+    };
 
-    function updateHistoryUI() {
-      const container = document.getElementById('historyLogs');
-      container.innerHTML = historyLogs.map(log => `<div style="padding: 6px 0; border-bottom: 1px solid var(--card-border);">${log}</div>`).join('');
-    }
-
-    function switchTab(tab) {
-      document.getElementById('tabAccountBtn').classList.toggle('active', tab === 'account');
-      document.getElementById('tabCircleBtn').classList.toggle('active', tab === 'circle');
-      document.getElementById('tabChatBtn').classList.toggle('active', tab === 'chat');
-      document.getElementById('tabContactsBtn').classList.toggle('active', tab === 'contacts');
-      document.getElementById('tabHistoryBtn').classList.toggle('active', tab === 'history');
-      
-      document.getElementById('tabAccount').style.display = tab === 'account' ? 'block' : 'none';
-      document.getElementById('tabCircle').style.display = tab === 'circle' ? 'block' : 'none';
-      document.getElementById('tabChat').style.display = tab === 'chat' ? 'block' : 'none';
-      document.getElementById('tabContacts').style.display = tab === 'contacts' ? 'block' : 'none';
-      document.getElementById('tabHistory').style.display = tab === 'history' ? 'block' : 'none';
-    }
-
-    function openPaywallModal() { document.getElementById('paywallModal').style.display = 'flex'; }
-    function closePaywallModal() { document.getElementById('paywallModal').style.display = 'none'; }
-    function openSosModal() { document.getElementById('sosModal').style.display = 'flex'; }
-    function closeSosModal() { document.getElementById('sosModal').style.display = 'none'; }
-
-    function sendSosWhatsApp() {
-      if (currentCoords) {
-        const text = encodeURIComponent(`🚨 EMERGENCY SOS! Live Track365 position: https://maps.google.com/?q=${currentCoords[0]},${currentCoords[1]}`);
-        window.open(`https://api.whatsapp.com/send?text=${text}`, '_blank');
+    window.toggleRadar = () => {
+      if (!requirePro("Hazard Radar")) return;
+      isRadar = !isRadar;
+      const btn = document.getElementById('btnRadar');
+      if (isRadar) {
+        btn.classList.add('active-green');
+        btn.innerText = "📡 Hazard Radar (On)";
+        if (lastPos) radarCircle = L.circleMarker(lastPos, { radius: 110, className: 'radar-sweep', stroke: false }).addTo(map);
+      } else {
+        btn.classList.remove('active-green');
+        btn.innerText = "📡 Hazard Radar (Off)";
+        if (radarCircle) { map.removeLayer(radarCircle); radarCircle = null; }
       }
-    }
+    };
+
+    // 3D Card Engine
+    const ic = document.getElementById('isoCardEl');
+    ic.addEventListener('mousemove', e => {
+      const r = ic.getBoundingClientRect();
+      ic.style.transform = `rotateX(${(e.clientY - r.top - r.height / 2) / -8}deg) rotateY(${(e.clientX - r.left - r.width / 2) / 8}deg) scale(1.02)`;
+    });
+    ic.addEventListener('mouseleave', () => ic.style.transform = 'rotateX(14deg) rotateY(-8deg) rotateZ(2deg)');
+
+    // Dual UPI Setup
+    const UPIS = { pri: { v: "meerakushwaha4789@okaxis" }, dad: { v: "9936280244@upi" } };
+    window.switchVpa = (t) => {
+      const vpa = UPIS[t].v;
+      const url = `upi://pay?pa=${vpa}&pn=Track365%20Pro&am=49&cu=INR&tn=Track365ProUnlock`;
+      document.getElementById('vpaLabel').innerText = vpa;
+      document.getElementById('qrUpi').src = `https://api.qrserver.com/v1/create-qr-code/?size=120x120&data=${encodeURIComponent(url)}`;
+      document.getElementById('linkUpi').href = url;
+
+      if (t === 'pri') {
+        document.getElementById('tabPri').style.background = 'var(--accent-pro)';
+        document.getElementById('tabPri').style.color = '#fff';
+        document.getElementById('tabDad').style.background = 'transparent';
+        document.getElementById('tabDad').style.color = 'var(--text-main)';
+      } else {
+        document.getElementById('tabDad').style.background = 'var(--accent-pro)';
+        document.getElementById('tabDad').style.color = '#fff';
+        document.getElementById('tabPri').style.background = 'transparent';
+        document.getElementById('tabPri').style.color = 'var(--text-main)';
+      }
+    };
+    window.switchVpa('pri');
+
+    window.openModal = id => document.getElementById(id).style.display = 'flex';
+    window.closeModal = id => document.getElementById(id).style.display = 'none';
   </script>
 </body>
 </html>
