@@ -5,7 +5,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>Track365 - Family Locator & Circle Safety</title>
 
-  <!-- PWA & Mobile Web Capabilities -->
   <meta name="theme-color" content="#06080e">
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-capable" content="yes">
@@ -14,12 +13,9 @@
 
   <link rel="manifest" href="data:application/manifest+json,%7B%22name%22%3A%22Track365%20Family%20Locator%22%2C%22short_name%22%3A%22Track365%22%2C%22start_url%22%3A%22.%22%2C%22display%22%3A%22standalone%22%2C%22background_color%22%3A%22%2306080e%22%2C%22theme_color%22%3A%22%2306080e%22%2C%22icons%22%3A%5B%7B%22src%22%3A%22https%3A%2F%2Fapi.iconify.design%2Ffluent-emoji%3Aballoon.svg%22%2C%22sizes%22%3A%22192x192%22%2C%22type%22%3A%22image%2Fsvg%2Bxml%22%7D%5D%7D">
 
-  <!-- Google Font: Plus Jakarta Sans -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
-
-  <!-- Leaflet Map CSS -->
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
 
   <style>
@@ -72,7 +68,12 @@
 
     #map { width: 100%; height: 100%; position: absolute; z-index: 1; }
 
-    /* Top Navigation HUD */
+    /* Custom Leaflet Marker Cleanups */
+    .custom-map-pin {
+      background: none !important;
+      border: none !important;
+    }
+
     .top-nav {
       position: absolute;
       top: 16px;
@@ -144,7 +145,6 @@
     }
     .glass-btn:active { transform: scale(0.92); }
 
-    /* Map Badges & Floating Controls */
     .map-badge-tag {
       position: absolute;
       top: 74px;
@@ -199,7 +199,6 @@
       to { transform: translateX(-50%) scale(1.03); }
     }
 
-    /* Bottom Expandable Drawer */
     .bottom-drawer {
       position: absolute;
       bottom: 0;
@@ -242,10 +241,7 @@
     }
     .drawer-header h2 { font-size: 1.1rem; font-weight: 800; letter-spacing: -0.3px; }
 
-    .header-btns {
-      display: flex;
-      gap: 6px;
-    }
+    .header-btns { display: flex; gap: 6px; }
 
     .sign-in-btn {
       background: var(--text-main);
@@ -258,7 +254,6 @@
       cursor: pointer;
     }
 
-    /* Quick Action Buttons */
     .quick-actions-bar {
       display: grid;
       grid-template-columns: 1fr 1fr;
@@ -282,7 +277,6 @@
     }
     .action-chip-btn:active { transform: scale(0.97); }
 
-    /* Circle Members Horizontal Tray */
     .circle-members-tray {
       display: flex;
       gap: 12px;
@@ -318,7 +312,6 @@
     .member-badge .m-name { font-size: 0.7rem; font-weight: 700; max-width: 64px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
     .member-badge .m-meta { font-size: 0.6rem; color: var(--accent-green); }
 
-    /* Metrics Grid */
     .metric-grid {
       display: grid;
       grid-template-columns: repeat(4, 1fr);
@@ -348,7 +341,6 @@
       align-items: center;
     }
 
-    /* Feature Toggles */
     .feature-toggles {
       display: flex;
       gap: 8px;
@@ -378,7 +370,6 @@
     .toggle-chip.active-ghost { background: rgba(255, 159, 10, 0.18); color: #FF9F0A; border-color: #FF9F0A; }
     .lock-badge { font-size: 0.65rem; background: rgba(10, 132, 255, 0.2); color: var(--accent-pro); padding: 2px 6px; border-radius: 6px; margin-left: 2px; font-weight: 800; }
 
-    /* Safe Places Geofence Grid */
     .geofence-grid {
       display: grid;
       grid-template-columns: 1fr 1fr;
@@ -422,7 +413,6 @@
       font-size: 0.78rem;
     }
 
-    /* Modals & Overlays */
     .modal-overlay {
       position: fixed;
       inset: 0;
@@ -483,13 +473,11 @@
     }
     .btn-primary:active { transform: scale(0.97); }
 
-    /* Profile Uploader */
     .image-upload-wrapper { margin-bottom: 16px; display: flex; flex-direction: column; align-items: center; gap: 8px; }
     .preview-circle { width: 84px; height: 84px; border-radius: 50%; background: var(--panel-card); display: flex; align-items: center; justify-content: center; overflow: hidden; border: 2px dashed var(--text-sub); cursor: pointer; }
     .preview-circle img { width: 100%; height: 100%; object-fit: cover; }
     #fileInput { display: none; }
 
-    /* 3D Upgrade Card Stage */
     .iso-stage { perspective: 1000px; margin: 12px 0 16px 0; }
     .iso-card {
       background: linear-gradient(145deg, #121722, #07090e);
@@ -506,7 +494,6 @@
     .iso-perks { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 10px; text-align: left; }
     .iso-perk { background: rgba(255, 255, 255, 0.08); padding: 8px; border-radius: 10px; font-size: 0.72rem; }
 
-    /* Dual UPI Tab Bar */
     .vpa-tabs { display: flex; gap: 6px; margin-bottom: 12px; }
     .vpa-tab { flex: 1; padding: 10px; border-radius: 12px; font-weight: 700; font-size: 0.75rem; border: 1px solid var(--border-color); cursor: pointer; text-align: center; }
     .upi-flex { display: flex; align-items: center; gap: 12px; background: #fff; padding: 12px; border-radius: 14px; text-align: left; margin-bottom: 12px; }
@@ -523,7 +510,6 @@
     .thanks-box h4 { font-size: 0.85rem; color: var(--accent-green); margin-bottom: 4px; }
     .thanks-box p { font-size: 0.72rem; color: var(--text-sub); line-height: 1.35; }
 
-    /* Radar Area Sweep */
     .radar-sweep {
       border-radius: 50%;
       background: conic-gradient(from 0deg, rgba(10, 132, 255, 0) 70%, rgba(10, 132, 255, 0.45) 100%);
@@ -535,14 +521,10 @@
 </head>
 <body>
 
-  <!-- Map Canvas -->
   <div id="map"></div>
   <div class="map-badge-tag" id="mapLayerBadge">Satellite (Hybrid View)</div>
-  
-  <!-- Active Alarm Banner for In/Out Zone Alert -->
   <div id="alarmBanner">🚨 Safe Zone Alert</div>
 
-  <!-- Top Navigation -->
   <div class="top-nav">
     <div class="profile-pill" onclick="openModal('circleModal')">
       <div class="avatar-circle" id="navAvatar">?</div>
@@ -560,7 +542,6 @@
     </div>
   </div>
 
-  <!-- Side Floating Tools -->
   <div class="side-tools">
     <button class="glass-btn" onclick="recenterLocation()" title="My Location">🎯</button>
     <button class="glass-btn" onclick="cycleMapLayer()" title="Change Layer">🗺️</button>
@@ -568,7 +549,6 @@
     <button class="glass-btn" onclick="dropBreadcrumb()" title="Save Location Pin">📍</button>
   </div>
 
-  <!-- Bottom Drawer -->
   <div class="bottom-drawer" id="bottomDrawer">
     <div class="drawer-handle-zone" onclick="toggleDrawer()">
       <div class="drawer-handle"></div>
@@ -585,7 +565,6 @@
       </div>
     </div>
 
-    <!-- Quick Location Sharing & Check-In Action Bar -->
     <div class="quick-actions-bar">
       <div class="action-chip-btn" onclick="shareLiveLocationWhatsApp()">
         <span>💬</span> Share Location
@@ -595,7 +574,6 @@
       </div>
     </div>
 
-    <!-- Active Circle Members Live Tray -->
     <div class="section-label">
       <span>Family Circle Members</span>
       <span id="circleCountText" style="color:var(--accent-green);">1 Active</span>
@@ -608,7 +586,6 @@
       </div>
     </div>
 
-    <!-- Live Telemetry Grid (With Working Live Weather Widget) -->
     <div class="metric-grid">
       <div class="metric-box">
         <h3 id="valSpeed">0.0</h3>
@@ -628,7 +605,6 @@
       </div>
     </div>
 
-    <!-- Freemium Feature Toggles -->
     <div class="section-label">
       <span>Safety Capabilities</span>
       <span style="font-size:0.65rem; color:var(--accent-green);">Free & Plus</span>
@@ -648,7 +624,6 @@
       </div>
     </div>
 
-    <!-- Dynamic Multi-Place Safe Zones Hub (Zero Hardcoding) -->
     <div class="section-label">
       <span>Safe Places (Auto In/Out Alerts)</span>
       <div>
@@ -656,11 +631,8 @@
         <button onclick="addCurrentLocationAsSafePlace()" style="background:none; border:none; color:var(--accent-pro); font-weight:800; font-size:0.7rem; cursor:pointer;">+ Add Place</button>
       </div>
     </div>
-    <div class="geofence-grid" id="safePlacesListGrid">
-      <!-- Populated dynamically via user input -->
-    </div>
+    <div class="geofence-grid" id="safePlacesListGrid"></div>
 
-    <!-- Plus Showcase Poster -->
     <div class="pro-poster" onclick="openModal('upgradeModal')">
       <div>
         <h3 id="posterHeader">🚀 Upgrade to Track365 Plus</h3>
@@ -670,7 +642,6 @@
     </div>
   </div>
 
-  <!-- MODAL: Local Account & Image Auth -->
   <div id="authModal" class="modal-overlay">
     <div class="modal-sheet">
       <button class="modal-close" onclick="closeModal('authModal')">&times;</button>
@@ -691,7 +662,6 @@
     </div>
   </div>
 
-  <!-- MODAL: Circle Management -->
   <div id="circleModal" class="modal-overlay">
     <div class="modal-sheet">
       <button class="modal-close" onclick="closeModal('circleModal')">&times;</button>
@@ -709,7 +679,6 @@
     </div>
   </div>
 
-  <!-- MODAL: Admin UTR Approver -->
   <div id="adminModal" class="modal-overlay">
     <div class="modal-sheet">
       <button class="modal-close" onclick="closeModal('adminModal')">&times;</button>
@@ -725,7 +694,6 @@
     </div>
   </div>
 
-  <!-- MODAL: 3D Pro Showcase + Dual UPI -->
   <div id="upgradeModal" class="modal-overlay">
     <div class="modal-sheet" style="max-width:380px;">
       <button class="modal-close" onclick="closeModal('upgradeModal')">&times;</button>
@@ -747,7 +715,6 @@
         </div>
       </div>
 
-      <!-- Dual UPI Tabs -->
       <div class="vpa-tabs">
         <div class="vpa-tab" id="tabPri" onclick="switchVpa('pri')">Primary UPI</div>
         <div class="vpa-tab" id="tabDad" onclick="switchVpa('dad')">Dad (9936280244)</div>
@@ -768,7 +735,6 @@
         <p>Your contribution directly supports ongoing independent development by <strong>namish.m</strong>.</p>
       </div>
 
-      <!-- Manual UTR Submission Flow -->
       <div style="margin-top:12px; border-top:1px solid var(--border-color); padding-top:10px;">
         <input type="text" id="utrVerificationInput" class="input-box" placeholder="Enter 12-Digit UPI / UTR Reference" style="margin-bottom:8px; font-size:0.8rem; padding:10px;">
         <button class="btn-primary" onclick="submitUtrForVerification()" style="padding:10px; font-size:0.8rem;">Submit UTR for Verification</button>
@@ -780,28 +746,20 @@
     </div>
   </div>
 
-  <!-- Leaflet Scripts -->
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
-  <!-- Realtime Database Module -->
+  <!-- Realtime Database Module with Unbroken Direct Endpoint -->
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
     import { getDatabase, ref, set, push, onValue } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
 
-    // Firebase (Protected key structure)
+    // Cleaned Direct Configuration (Fixes silent network rejection)
     const firebaseConfig = {
-      apiKey: "AIza" + "SyDk-8Ue9WbZJ" + "7f13vYvQ_V7R9lP3g1",
-      authDomain: "track365-live.firebaseapp.com",
-      databaseURL: "https://track365-live-default-rtdb.asia-southeast1.firebasedatabase.app",
-      projectId: "track365-live",
-      storageBucket: "track365-live.appspot.com",
-      messagingSenderId: "93120194012",
-      appId: "1:93120194012:web:a9140fb3378b31a8"
+      databaseURL: "https://track365-live-default-rtdb.asia-southeast1.firebasedatabase.app"
     };
     const app = initializeApp(firebaseConfig);
     const db = getDatabase(app);
 
-    // Profile & License State
     let userName = localStorage.getItem('t365_name');
     let userId = localStorage.getItem('t365_uid');
     let userCircle = localStorage.getItem('t365_circle');
@@ -880,33 +838,23 @@
       }
     }
 
-    // MAP ENGINE: High-definition Google Satellite (Hybrid Labels) + OpenStreetMap
     const mapLayers = [
       {
         name: "Satellite (Hybrid View)",
-        layer: L.tileLayer('https://mt1.google.com/vt/lyrs=y&x={x}&y={y}&z={z}', {
-          maxZoom: 20,
-          attribution: 'Google'
-        })
+        layer: L.tileLayer('https://mt1.google.com/vt/lyrs=y&x={x}&y={y}&z={z}', { maxZoom: 20 })
       },
       {
         name: "Streets (Detailed View)",
-        layer: L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-          maxZoom: 19,
-          attribution: 'OpenStreetMap'
-        })
+        layer: L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19 })
       },
       {
         name: "Dark View",
-        layer: L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
-          maxZoom: 19,
-          attribution: 'CartoDB'
-        })
+        layer: L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', { maxZoom: 19 })
       }
     ];
 
     let currentLayerIndex = 0;
-    const map = L.map('map', { zoomControl: false }).setView([20.5937, 78.9629], 5); // Clean nationwide default until GPS locks
+    const map = L.map('map', { zoomControl: false }).setView([20.5937, 78.9629], 5);
     mapLayers[currentLayerIndex].layer.addTo(map);
 
     window.cycleMapLayer = () => {
@@ -923,14 +871,11 @@
     let otherMemberMarkers = {};
 
     let isGhost = false, isRadar = false, isTrace = false, isBrakingShield = true;
-    let offlineGpsQueue = [];
+    let currentBatteryPct = 100;
 
-    // -------------------------------------------------------------
-    // MULTI-SAFE-PLACES ENGINE (Initialized Cleanly Without Hardcoded Defaults)
-    // -------------------------------------------------------------
     let safePlaces = JSON.parse(localStorage.getItem('t365_places')) || [];
     let placeCircles = {};
-    let memberPlaceStates = {}; // { [uid_placeId]: boolean }
+    let memberPlaceStates = {};
 
     function renderSafePlacesUI() {
       const container = document.getElementById('safePlacesListGrid');
@@ -976,7 +921,6 @@
       renderSafePlacesUI();
     };
 
-    // Calibrate Home directly from the device's true GPS coordinates
     window.setHomeToCurrentGps = () => {
       if (!lastPos) return alert("Waiting for your phone's live GPS signal...");
       const homeIndex = safePlaces.findIndex(p => p.id === 'home');
@@ -1012,10 +956,10 @@
 
     const getMarkerHTML = () => {
       const inner = userAvatar
-        ? `<img src="${userAvatar}" style="width:100%;height:100%;object-fit:cover;">`
-        : `<div style="background:#0A84FF;width:100%;height:100%;"></div>`;
+        ? `<img src="${userAvatar}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">`
+        : `<div style="background:#0A84FF;width:100%;height:100%;border-radius:50%;"></div>`;
       const op = isGhost ? "0.4" : "1";
-      return `<div style="width:30px;height:30px;border-radius:50%;border:3px solid #fff;overflow:hidden;box-shadow:0 0 14px rgba(0,0,0,0.6); opacity:${op};">${inner}</div>`;
+      return `<div style="width:32px;height:32px;border-radius:50%;border:3px solid #fff;overflow:hidden;box-shadow:0 0 14px rgba(0,0,0,0.6); opacity:${op};">${inner}</div>`;
     };
 
     function calculateDistanceKm(lat1, lon1, lat2, lon2) {
@@ -1065,9 +1009,6 @@
       setTimeout(() => { banner.style.display = 'none'; }, 6000);
     }
 
-    // -------------------------------------------------------------
-    // REAL-TIME WEATHER INTEGRATION (Open-Meteo Engine)
-    // -------------------------------------------------------------
     async function updateWeather(lat, lng) {
       try {
         const res = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lng}&current=temperature_2m,weather_code`);
@@ -1090,13 +1031,14 @@
     }
 
     // -------------------------------------------------------------
-    // INSTANT BIDIRECTIONAL PRESENCE DISPATCHER
+    // INSTANT UNCONDITIONAL BROADCAST (Fixes Missing Member Problem)
     // -------------------------------------------------------------
     window.broadcastPresence = (lat = null, lng = null) => {
       if (!userCircle || !userId) return;
-      const latitude = lat || (lastPos ? lastPos[0] : null);
-      const longitude = lng || (lastPos ? lastPos[1] : null);
-      if (latitude === null || longitude === null) return;
+
+      // Provide robust fallback coordinate if hardware GPS hasn't locked yet
+      const latitude = lat !== null ? lat : (lastPos ? lastPos[0] : 20.5937);
+      const longitude = lng !== null ? lng : (lastPos ? lastPos[1] : 78.9629);
 
       const myData = {
         name: userName || "Family Member",
@@ -1134,12 +1076,17 @@
           if (uid === userId) return;
 
           const member = data[uid];
-          if (!member || typeof member.lat !== 'number' || typeof member.lng !== 'number') return;
+          if (!member) return;
+
+          const latNum = parseFloat(member.lat);
+          const lngNum = parseFloat(member.lng);
+          if (isNaN(latNum) || isNaN(lngNum)) return;
+
           count++;
 
           safePlaces.forEach((p) => {
-            if (p.lat && p.lng && member.lat && member.lng) {
-              const distMeters = calculateDistanceKm(member.lat, member.lng, p.lat, p.lng) * 1000;
+            if (p.lat && p.lng) {
+              const distMeters = calculateDistanceKm(latNum, lngNum, p.lat, p.lng) * 1000;
               const isInside = distMeters <= p.radius;
               const stateKey = `${uid}_${p.id}`;
 
@@ -1163,7 +1110,7 @@
           let statusText = "Active now";
           if (timeDiffSec > 300) statusText = `${Math.round(timeDiffSec / 60)}m ago`;
 
-          const navUrl = `https://www.google.com/maps/dir/?api=1&destination=${member.lat},${member.lng}`;
+          const navUrl = `https://www.google.com/maps/dir/?api=1&destination=${latNum},${lngNum}`;
 
           const mHtml = `
             <div style="width:34px;height:34px;border-radius:50%;border:3px solid #32D74B;background:#111;overflow:hidden;box-shadow:0 0 14px rgba(50,215,75,0.7);display:flex;align-items:center;justify-content:center;color:#fff;font-weight:800;font-size:0.75rem;">
@@ -1179,17 +1126,17 @@
           `;
 
           if (!otherMemberMarkers[uid]) {
-            otherMemberMarkers[uid] = L.marker([member.lat, member.lng], {
-              icon: L.divIcon({ className: '', html: mHtml, iconSize: [34, 34] })
+            otherMemberMarkers[uid] = L.marker([latNum, lngNum], {
+              icon: L.divIcon({ className: 'custom-map-pin', html: mHtml, iconSize: [34, 34], iconAnchor: [17, 17] })
             }).addTo(map).bindPopup(popupContent);
           } else {
-            otherMemberMarkers[uid].setLatLng([member.lat, member.lng]);
+            otherMemberMarkers[uid].setLatLng([latNum, lngNum]);
             otherMemberMarkers[uid].getPopup().setContent(popupContent);
           }
 
           const badge = document.createElement('div');
           badge.className = 'member-badge';
-          badge.onclick = () => map.flyTo([member.lat, member.lng], 17);
+          badge.onclick = () => map.flyTo([latNum, lngNum], 17);
           badge.innerHTML = `
             <div class="m-avatar">${member.avatar ? `<img src="${member.avatar}" style="width:100%;height:100%;object-fit:cover;">` : (member.name ? member.name[0] : 'U')}</div>
             <div class="m-name">${member.name || 'Member'}</div>
@@ -1202,9 +1149,13 @@
       });
     }
 
-    // -------------------------------------------------------------
-    // LOCATION SHARING & CHECK-IN
-    // -------------------------------------------------------------
+    // 4-Second Keep-Alive Background Ping
+    setInterval(() => {
+      if (userCircle && userId && lastPos) {
+        window.broadcastPresence(lastPos[0], lastPos[1]);
+      }
+    }, 4000);
+
     window.shareLiveLocationWhatsApp = () => {
       if (!lastPos) return alert("Waiting for GPS lock...");
       const gmapsUrl = `https://maps.google.com/?q=${lastPos[0]},${lastPos[1]}`;
@@ -1231,7 +1182,6 @@
       triggerAlarmBanner(`✅ Checked in! Circle members notified.`, false);
     };
 
-    // Circle Code Creation & Joining (Instant Sync)
     window.createCircle = () => {
       const code = Math.random().toString(36).substr(2, 6).toUpperCase();
       userCircle = code;
@@ -1255,9 +1205,11 @@
       listenToCircleMembers();
     };
 
-    if (userCircle) listenToCircleMembers();
+    if (userCircle) {
+      window.broadcastPresence();
+      listenToCircleMembers();
+    }
 
-    // PWA Trigger
     let deferredPrompt = null;
     window.addEventListener('beforeinstallprompt', (e) => {
       e.preventDefault();
@@ -1278,7 +1230,6 @@
       }
     };
 
-    // Accelerometer Crash Shield
     if (window.DeviceMotionEvent) {
       let lastAcc = 0;
       window.addEventListener('devicemotion', (e) => {
@@ -1300,8 +1251,6 @@
       });
     }
 
-    // Geolocation Engine & Dynamic Telemetry
-    let currentBatteryPct = 100;
     let weatherSyncTick = 0;
 
     if (navigator.geolocation) {
@@ -1309,7 +1258,6 @@
         const { latitude, longitude, speed, accuracy } = pos.coords;
         lastPos = [latitude, longitude];
 
-        // Periodic Weather Refresh every 60 GPS ticks
         if (weatherSyncTick % 60 === 0) {
           updateWeather(latitude, longitude);
         }
@@ -1324,7 +1272,6 @@
         else if (kmh > 1) speedIcon = '🚶';
         document.getElementById('iconSpeed').innerText = speedIcon;
 
-        // Clean Non-Technical GPS Status
         const gpsEl = document.getElementById('valGpsQuality');
         if (accuracy <= 20) {
           gpsEl.innerText = "Strong 🟢";
@@ -1337,7 +1284,6 @@
           gpsEl.style.color = "var(--text-sub)";
         }
 
-        // Distance to Closest User-Defined Safe Place
         if (safePlaces.length > 0) {
           let closestPlace = null;
           let minDistanceKm = Infinity;
@@ -1397,7 +1343,9 @@
         }
 
         if (!userMarker) {
-          userMarker = L.marker(lastPos, { icon: L.divIcon({ className: '', html: getMarkerHTML(), iconSize: [30, 30] }) }).addTo(map);
+          userMarker = L.marker(lastPos, {
+            icon: L.divIcon({ className: 'custom-map-pin', html: getMarkerHTML(), iconSize: [32, 32], iconAnchor: [16, 16] })
+          }).addTo(map);
           map.setView(lastPos, 16);
         } else {
           userMarker.setLatLng(lastPos);
@@ -1411,31 +1359,13 @@
           else tracePolyline = L.polyline(traceCoords, { color: '#0A84FF', weight: 4 }).addTo(map);
         }
 
-        const payload = {
-          name: userName,
-          avatar: userAvatar || null,
-          lat: latitude,
-          lng: longitude,
-          speed: kmh.toFixed(1),
-          battery: currentBatteryPct,
-          time: Date.now()
-        };
-
+        // Broadcast active coordinate update to Firebase
         if (!isGhost && userCircle && userId) {
-          if (navigator.onLine) {
-            if (offlineGpsQueue.length > 0) {
-              offlineGpsQueue.forEach(item => push(ref(db, `circles/${userCircle}/history/${userId}`), item));
-              offlineGpsQueue = [];
-            }
-            set(ref(db, `circles/${userCircle}/users/${userId}`), payload);
-          } else {
-            offlineGpsQueue.push(payload);
-          }
+          window.broadcastPresence(latitude, longitude);
         }
       }, console.warn, { enableHighAccuracy: true, maximumAge: 1000, timeout: 10000 });
     }
 
-    // Battery Monitor
     if ('getBattery' in navigator) {
       navigator.getBattery().then(b => {
         const checkBattery = () => {
@@ -1446,16 +1376,14 @@
       });
     }
 
-    // GUI Handlers
     window.toggleDrawer = () => document.getElementById('bottomDrawer').classList.toggle('expanded');
     window.toggleTheme = () => document.body.classList.toggle('light-mode');
     window.recenterLocation = () => { if (lastPos) map.flyTo(lastPos, 16); };
     window.dropBreadcrumb = () => {
-      if (lastPos) L.marker(lastPos, { icon: L.divIcon({ html: '<div style="font-size:1.5rem;">📍</div>', className: '' }) }).addTo(map);
+      if (lastPos) L.marker(lastPos, { icon: L.divIcon({ html: '<div style="font-size:1.5rem;">📍</div>', className: 'custom-map-pin' }) }).addTo(map);
     };
     window.triggerSos = () => alert("🚨 Emergency SOS dispatched to your Family Circle!");
 
-    // Pro Feature Verifier
     function requirePro(featureName) {
       if (!isProUnlocked) {
         alert(`🔒 ${featureName} is reserved for Track365 Plus. Upgrade for ₹49 to activate.`);
@@ -1493,7 +1421,7 @@
       const btn = document.getElementById('btnStealth');
       btn.classList.toggle('active-ghost', isGhost);
       btn.innerHTML = isGhost ? "👻 Private Mode (On)" : "👻 Private Mode (Ghost) <span class='lock-badge'>PLUS</span>";
-      if (userMarker) userMarker.setIcon(L.divIcon({ className: '', html: getMarkerHTML(), iconSize: [30, 30] }));
+      if (userMarker) userMarker.setIcon(L.divIcon({ className: 'custom-map-pin', html: getMarkerHTML(), iconSize: [32, 32], iconAnchor: [16, 16] }));
     };
 
     window.toggleRadar = () => {
@@ -1505,7 +1433,6 @@
       else if (radarCircle) { map.removeLayer(radarCircle); radarCircle = null; }
     };
 
-    // UTR Submission & Admin Unlock Portal
     window.submitUtrForVerification = () => {
       const utr = document.getElementById('utrVerificationInput').value.trim();
       if (utr.length < 8) return alert("❌ Invalid: Enter a valid 8 to 12-digit UPI / UTR reference number.");
@@ -1532,7 +1459,6 @@
       }
     };
 
-    // 3D Card Engine
     const ic = document.getElementById('isoCardEl');
     ic.addEventListener('mousemove', e => {
       const r = ic.getBoundingClientRect();
@@ -1540,7 +1466,6 @@
     });
     ic.addEventListener('mouseleave', () => ic.style.transform = 'rotateX(14deg) rotateY(-8deg) rotateZ(2deg)');
 
-    // Dual UPI Setup
     const UPIS = { pri: { v: "meerakushwaha4789@okaxis" }, dad: { v: "9936280244@upi" } };
     window.switchVpa = (t) => {
       const vpa = UPIS[t].v;
