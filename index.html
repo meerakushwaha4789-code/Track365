@@ -16,7 +16,7 @@
 
   <!-- Google Font: Plus Jakarta Sans -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="preconnect" href="https://fonts.gstatic.com">
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
 
   <!-- Leaflet Map CSS -->
@@ -608,19 +608,19 @@
       </div>
     </div>
 
-    <!-- Live Telemetry Grid (Non-Technical, Clean Signal Format) -->
+    <!-- Live Telemetry Grid (With Working Live Weather Widget) -->
     <div class="metric-grid">
       <div class="metric-box">
         <h3 id="valSpeed">0.0</h3>
         <span><span id="iconSpeed">🧍</span> KM/H</span>
       </div>
       <div class="metric-box">
-        <h3 id="valDistance">0 m</h3>
+        <h3 id="valDistance">No Place Set</h3>
         <span>📍 Dist to Safe</span>
       </div>
       <div class="metric-box">
-        <h3 id="valBatt">--%</h3>
-        <span>🔋 Battery</span>
+        <h3 id="valWeather">--°C</h3>
+        <span id="labelWeather">⛅ Weather</span>
       </div>
       <div class="metric-box">
         <h3 id="valGpsQuality" style="font-size:0.85rem; color:var(--accent-green); margin-top:2px;">Strong 🟢</h3>
@@ -648,7 +648,7 @@
       </div>
     </div>
 
-    <!-- Multi-Place Safe Zones Hub (With 1-Tap 'Set Spot as Home') -->
+    <!-- Dynamic Multi-Place Safe Zones Hub (Zero Hardcoding) -->
     <div class="section-label">
       <span>Safe Places (Auto In/Out Alerts)</span>
       <div>
@@ -657,7 +657,7 @@
       </div>
     </div>
     <div class="geofence-grid" id="safePlacesListGrid">
-      <!-- Dynamically populated -->
+      <!-- Populated dynamically via user input -->
     </div>
 
     <!-- Plus Showcase Poster -->
@@ -808,6 +808,11 @@
     let userAvatar = localStorage.getItem('t365_avatar');
     let isProUnlocked = localStorage.getItem('t365_pro') === 'true';
 
+    if (!userId) {
+      userId = "usr_" + Math.random().toString(36).substr(2, 7);
+      localStorage.setItem('t365_uid', userId);
+    }
+
     function syncProUI() {
       if (isProUnlocked) {
         document.getElementById('badgeGhost').innerText = "ACTIVE";
@@ -823,7 +828,7 @@
     }
     syncProUI();
 
-    if (!userName || !userId) {
+    if (!userName) {
       document.getElementById('authModal').style.display = 'flex';
     } else {
       updateProfileUI();
@@ -846,7 +851,6 @@
       const input = document.getElementById('authNameInput').value.trim();
       if (input.length < 2) return alert("Enter a valid name.");
       userName = input;
-      userId = userId || ("usr_" + Math.random().toString(36).substr(2, 6));
 
       localStorage.setItem('t365_name', userName);
       localStorage.setItem('t365_uid', userId);
@@ -854,6 +858,7 @@
 
       document.getElementById('authModal').style.display = 'none';
       updateProfileUI();
+      window.broadcastPresence();
       listenToCircleMembers();
     };
 
@@ -901,7 +906,7 @@
     ];
 
     let currentLayerIndex = 0;
-    const map = L.map('map', { zoomControl: false }).setView([27.882, 79.912], 15);
+    const map = L.map('map', { zoomControl: false }).setView([20.5937, 78.9629], 5); // Clean nationwide default until GPS locks
     mapLayers[currentLayerIndex].layer.addTo(map);
 
     window.cycleMapLayer = () => {
@@ -921,12 +926,9 @@
     let offlineGpsQueue = [];
 
     // -------------------------------------------------------------
-    // ACCURATE MULTI-SAFE-PLACES ENGINE (With 0m Calibration)
+    // MULTI-SAFE-PLACES ENGINE (Initialized Cleanly Without Hardcoded Defaults)
     // -------------------------------------------------------------
-    let safePlaces = JSON.parse(localStorage.getItem('t365_places')) || [
-      { id: 'home', name: "Home (Azizganj)", lat: null, lng: null, radius: 250 }
-    ];
-
+    let safePlaces = JSON.parse(localStorage.getItem('t365_places')) || [];
     let placeCircles = {};
     let memberPlaceStates = {}; // { [uid_placeId]: boolean }
 
@@ -936,6 +938,12 @@
 
       Object.keys(placeCircles).forEach(id => map.removeLayer(placeCircles[id]));
       placeCircles = {};
+
+      if (safePlaces.length === 0) {
+        container.innerHTML = `<div style="grid-column: span 2; font-size:0.75rem; color:var(--text-sub); padding:10px; text-align:center; border:1px dashed var(--border-color); border-radius:14px;">No safe places configured yet.<br>Tap <b>"📍 Set Spot as Home"</b> or <b>"+ Add Place"</b>.</div>`;
+        document.getElementById('valDistance').innerText = "None Set";
+        return;
+      }
 
       safePlaces.forEach((p, idx) => {
         if (p.lat && p.lng) {
@@ -951,10 +959,10 @@
         const card = document.createElement('div');
         card.className = 'geofence-card';
         card.innerHTML = `
-          <div onclick="${p.lat ? `map.flyTo([${p.lat},${p.lng}], 16)` : 'setHomeToCurrentGps()'}" style="flex:1;">
-            <span>📍</span> ${p.name} ${!p.lat ? '<small style="color:var(--accent-amber);">(Tap to Set)</small>' : ''}
+          <div onclick="map.flyTo([${p.lat}, ${p.lng}], 16)" style="flex:1;">
+            <span>📍</span> ${p.name}
           </div>
-          ${p.id !== 'home' ? `<button onclick="removeSafePlace(${idx})" style="background:none; border:none; color:var(--accent-danger); font-size:0.8rem; cursor:pointer; padding:2px 6px;">✕</button>` : ''}
+          <button onclick="removeSafePlace(${idx})" style="background:none; border:none; color:var(--accent-danger); font-size:0.8rem; cursor:pointer; padding:2px 6px;">✕</button>
         `;
         container.appendChild(card);
       });
@@ -968,24 +976,27 @@
       renderSafePlacesUI();
     };
 
-    // Fixes the 2.6 km bug by calibrating Home to your exact live GPS spot
+    // Calibrate Home directly from the device's true GPS coordinates
     window.setHomeToCurrentGps = () => {
       if (!lastPos) return alert("Waiting for your phone's live GPS signal...");
       const homeIndex = safePlaces.findIndex(p => p.id === 'home');
+      const homeName = prompt("Name this primary safe place:", "Home") || "Home";
+      
       if (homeIndex !== -1) {
+        safePlaces[homeIndex].name = homeName;
         safePlaces[homeIndex].lat = lastPos[0];
         safePlaces[homeIndex].lng = lastPos[1];
       } else {
-        safePlaces.unshift({ id: 'home', name: "Home (Azizganj)", lat: lastPos[0], lng: lastPos[1], radius: 250 });
+        safePlaces.unshift({ id: 'home', name: homeName, lat: lastPos[0], lng: lastPos[1], radius: 250 });
       }
       renderSafePlacesUI();
-      document.getElementById('valDistance').innerText = "0 m (Home)";
-      alert("✅ Perfect! Home coordinates calibrated to your exact phone position. You are now at 0m from Home.");
+      document.getElementById('valDistance').innerText = `0 m (${homeName})`;
+      alert(`✅ Configured! "${homeName}" is mapped to your precise GPS location.`);
     };
 
     window.addCurrentLocationAsSafePlace = () => {
       if (!lastPos) return alert("Waiting for live GPS signal...");
-      const name = prompt("Name this safe place (e.g. School, Coaching, Work):");
+      const name = prompt("Name this safe place (e.g. Work, Coaching, Campus):");
       if (name) {
         safePlaces.push({
           id: 'place_' + Date.now(),
@@ -995,7 +1006,7 @@
           radius: 250
         });
         renderSafePlacesUI();
-        alert(`🛡️ Safe Place "${name}" activated! All arrivals and departures are now monitored.`);
+        alert(`🛡️ Safe Place "${name}" activated! Arrivals and departures will be tracked.`);
       }
     };
 
@@ -1042,7 +1053,7 @@
           osc.stop(audioCtx.currentTime + 0.6);
         }
       } catch (err) {
-        console.warn("Audio notice:", err.message);
+        console.warn("Audio warning:", err.message);
       }
     }
 
@@ -1055,8 +1066,51 @@
     }
 
     // -------------------------------------------------------------
-    // LIVE CIRCLE RADAR & MULTI-GEOFENCE IN/OUT DISPATCHER
+    // REAL-TIME WEATHER INTEGRATION (Open-Meteo Engine)
     // -------------------------------------------------------------
+    async function updateWeather(lat, lng) {
+      try {
+        const res = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lng}&current=temperature_2m,weather_code`);
+        const data = await res.json();
+        if (data && data.current) {
+          const temp = Math.round(data.current.temperature_2m);
+          const code = data.current.weather_code;
+          let cond = "☀️ Sunny";
+          if (code > 0 && code <= 3) cond = "⛅ Cloudy";
+          else if (code >= 45 && code <= 48) cond = "🌫️ Foggy";
+          else if (code >= 51 && code <= 67) cond = "🌧️ Rain";
+          else if (code >= 80 && code <= 99) cond = "⛈️ Thunder";
+
+          document.getElementById('valWeather').innerText = `${temp}°C`;
+          document.getElementById('labelWeather').innerText = cond;
+        }
+      } catch (e) {
+        console.warn("Weather sync error:", e);
+      }
+    }
+
+    // -------------------------------------------------------------
+    // INSTANT BIDIRECTIONAL PRESENCE DISPATCHER
+    // -------------------------------------------------------------
+    window.broadcastPresence = (lat = null, lng = null) => {
+      if (!userCircle || !userId) return;
+      const latitude = lat || (lastPos ? lastPos[0] : null);
+      const longitude = lng || (lastPos ? lastPos[1] : null);
+      if (latitude === null || longitude === null) return;
+
+      const myData = {
+        name: userName || "Family Member",
+        avatar: userAvatar || null,
+        lat: latitude,
+        lng: longitude,
+        speed: "0.0",
+        battery: currentBatteryPct || 100,
+        time: Date.now()
+      };
+
+      set(ref(db, `circles/${userCircle}/users/${userId}`), myData);
+    };
+
     function listenToCircleMembers() {
       if (!userCircle) return;
 
@@ -1080,6 +1134,7 @@
           if (uid === userId) return;
 
           const member = data[uid];
+          if (!member || typeof member.lat !== 'number' || typeof member.lng !== 'number') return;
           count++;
 
           safePlaces.forEach((p) => {
@@ -1147,7 +1202,9 @@
       });
     }
 
-    // Location Sharing & Check-In
+    // -------------------------------------------------------------
+    // LOCATION SHARING & CHECK-IN
+    // -------------------------------------------------------------
     window.shareLiveLocationWhatsApp = () => {
       if (!lastPos) return alert("Waiting for GPS lock...");
       const gmapsUrl = `https://maps.google.com/?q=${lastPos[0]},${lastPos[1]}`;
@@ -1162,7 +1219,7 @@
     };
 
     window.sendCircleCheckIn = () => {
-      if (!userCircle || !lastPos) return alert("Circle or GPS not ready.");
+      if (!userCircle || !lastPos) return alert("Circle or GPS not connected.");
       push(ref(db, `circles/${userCircle}/alerts`), {
         type: "CHECK_IN",
         msg: `📍 ${userName || 'Member'} checked in safely!`,
@@ -1174,11 +1231,12 @@
       triggerAlarmBanner(`✅ Checked in! Circle members notified.`, false);
     };
 
-    // Circle Code Creation & Joining
+    // Circle Code Creation & Joining (Instant Sync)
     window.createCircle = () => {
       const code = Math.random().toString(36).substr(2, 6).toUpperCase();
       userCircle = code;
       localStorage.setItem('t365_circle', code);
+      window.broadcastPresence();
       alert("New Circle Code Created: " + code);
       updateProfileUI();
       closeModal('circleModal');
@@ -1190,6 +1248,7 @@
       if (code.length !== 6) return alert("Code must be exactly 6 characters.");
       userCircle = code;
       localStorage.setItem('t365_circle', code);
+      window.broadcastPresence();
       alert("Joined Circle: " + code);
       updateProfileUI();
       closeModal('circleModal');
@@ -1219,7 +1278,7 @@
       }
     };
 
-    // Accelerometer Crash / Braking Shield
+    // Accelerometer Crash Shield
     if (window.DeviceMotionEvent) {
       let lastAcc = 0;
       window.addEventListener('devicemotion', (e) => {
@@ -1243,18 +1302,18 @@
 
     // Geolocation Engine & Dynamic Telemetry
     let currentBatteryPct = 100;
+    let weatherSyncTick = 0;
+
     if (navigator.geolocation) {
       navigator.geolocation.watchPosition((pos) => {
         const { latitude, longitude, speed, accuracy } = pos.coords;
         lastPos = [latitude, longitude];
 
-        // Auto-initialize Home location if first time running at home
-        const homeObj = safePlaces.find(p => p.id === 'home');
-        if (homeObj && (!homeObj.lat || !homeObj.lng)) {
-          homeObj.lat = latitude;
-          homeObj.lng = longitude;
-          renderSafePlacesUI();
+        // Periodic Weather Refresh every 60 GPS ticks
+        if (weatherSyncTick % 60 === 0) {
+          updateWeather(latitude, longitude);
         }
+        weatherSyncTick++;
 
         const kmh = speed ? (speed * 3.6) : 0;
         document.getElementById('valSpeed').innerText = kmh.toFixed(1);
@@ -1265,7 +1324,7 @@
         else if (kmh > 1) speedIcon = '🚶';
         document.getElementById('iconSpeed').innerText = speedIcon;
 
-        // Clean, Store-Friendly GPS Status (No Flagged/Technical Metre Labels)
+        // Clean Non-Technical GPS Status
         const gpsEl = document.getElementById('valGpsQuality');
         if (accuracy <= 20) {
           gpsEl.innerText = "Strong 🟢";
@@ -1278,21 +1337,20 @@
           gpsEl.style.color = "var(--text-sub)";
         }
 
-        // Distance to Active Safe Place (Accurate 0m Calculation)
-        if (safePlaces.length > 0 && safePlaces[0].lat) {
-          const nearestPlace = safePlaces[0];
-          const distKm = calculateDistanceKm(latitude, longitude, nearestPlace.lat, nearestPlace.lng);
-          const distM = Math.round(distKm * 1000);
-          
-          if (distM < nearestPlace.radius) {
-            document.getElementById('valDistance').innerText = "0 m (Home)";
-          } else {
-            document.getElementById('valDistance').innerText = distKm < 1 ? distM + " m" : distKm.toFixed(1) + " km";
-          }
+        // Distance to Closest User-Defined Safe Place
+        if (safePlaces.length > 0) {
+          let closestPlace = null;
+          let minDistanceKm = Infinity;
 
           safePlaces.forEach((p) => {
             if (p.lat && p.lng) {
-              const distMeters = calculateDistanceKm(latitude, longitude, p.lat, p.lng) * 1000;
+              const distKm = calculateDistanceKm(latitude, longitude, p.lat, p.lng);
+              if (distKm < minDistanceKm) {
+                minDistanceKm = distKm;
+                closestPlace = p;
+              }
+
+              const distMeters = distKm * 1000;
               const isInside = distMeters <= p.radius;
               const stateKey = `${userId}_${p.id}`;
 
@@ -1325,6 +1383,17 @@
               }
             }
           });
+
+          if (closestPlace) {
+            const distM = Math.round(minDistanceKm * 1000);
+            if (distM <= closestPlace.radius) {
+              document.getElementById('valDistance').innerText = `0 m (${closestPlace.name})`;
+            } else {
+              document.getElementById('valDistance').innerText = minDistanceKm < 1 ? `${distM} m` : `${minDistanceKm.toFixed(1)} km`;
+            }
+          }
+        } else {
+          document.getElementById('valDistance').innerText = "None Set";
         }
 
         if (!userMarker) {
@@ -1371,7 +1440,6 @@
       navigator.getBattery().then(b => {
         const checkBattery = () => {
           currentBatteryPct = Math.round(b.level * 100);
-          document.getElementById('valBatt').innerText = currentBatteryPct + "%";
         };
         checkBattery();
         b.addEventListener('levelchange', checkBattery);
