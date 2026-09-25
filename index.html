@@ -3,16 +3,16 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Track365 - Tactical Radar & Circle Safety</title>
+  <title>Track365 - Family Locator & Circle Safety</title>
 
-  <!-- PWA & Mobile Standalone Settings -->
+  <!-- PWA & Mobile Web Capabilities -->
   <meta name="theme-color" content="#06080e">
+  <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="Track365">
 
-  <!-- Embedded Web App Manifest for Native "Add to Home Screen" -->
-  <link rel="manifest" href="data:application/manifest+json,%7B%22name%22%3A%22Track365%20Radar%22%2C%22short_name%22%3A%22Track365%22%2C%22start_url%22%3A%22.%22%2C%22display%22%3A%22standalone%22%2C%22background_color%22%3A%22%2306080e%22%2C%22theme_color%22%3A%22%2306080e%22%7D">
+  <link rel="manifest" href="data:application/manifest+json,%7B%22name%22%3A%22Track365%20Family%20Locator%22%2C%22short_name%22%3A%22Track365%22%2C%22start_url%22%3A%22.%22%2C%22display%22%3A%22standalone%22%2C%22background_color%22%3A%22%2306080e%22%2C%22theme_color%22%3A%22%2306080e%22%2C%22icons%22%3A%5B%7B%22src%22%3A%22https%3A%2F%2Fapi.iconify.design%2Ffluent-emoji%3Aballoon.svg%22%2C%22sizes%22%3A%22192x192%22%2C%22type%22%3A%22image%2Fsvg%2Bxml%22%7D%5D%7D">
 
   <!-- Google Font: Plus Jakarta Sans -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -70,14 +70,9 @@
       transition: background 0.3s ease, color 0.3s ease;
     }
 
-    #map {
-      width: 100%;
-      height: 100%;
-      position: absolute;
-      z-index: 1;
-    }
+    #map { width: 100%; height: 100%; position: absolute; z-index: 1; }
 
-    /* Top HUD */
+    /* Top Navigation HUD */
     .top-nav {
       position: absolute;
       top: 16px;
@@ -123,7 +118,7 @@
 
     .profile-info h1 { font-size: 0.88rem; font-weight: 800; letter-spacing: -0.2px; }
     .profile-info span { font-size: 0.68rem; color: var(--text-sub); font-weight: 600; }
-    .watermark-badge { font-size: 0.62rem; color: var(--accent-pro); font-weight: 800; display: block; margin-top: 1px; }
+    .watermark-badge { font-size: 0.62rem; color: var(--accent-pro); font-weight: 800; display: block; }
 
     .action-stack {
       pointer-events: auto;
@@ -145,14 +140,14 @@
       font-size: 1.15rem;
       cursor: pointer;
       box-shadow: var(--shadow-3d);
-      transition: transform 0.2s, background 0.2s;
+      transition: transform 0.2s;
     }
     .glass-btn:active { transform: scale(0.92); }
 
     /* Map Badges & Floating Controls */
     .map-badge-tag {
       position: absolute;
-      top: 72px;
+      top: 74px;
       left: 16px;
       z-index: 1000;
       background: var(--panel-bg);
@@ -179,27 +174,29 @@
       pointer-events: auto;
     }
 
-    #speedWarningBanner {
+    #alarmBanner {
       display: none;
       position: absolute;
-      top: 72px;
+      top: 74px;
       left: 50%;
       transform: translateX(-50%);
-      z-index: 2000;
-      background: rgba(255, 69, 58, 0.9);
+      z-index: 2500;
+      background: rgba(255, 69, 58, 0.95);
       backdrop-filter: blur(10px);
       color: #fff;
-      padding: 6px 16px;
-      border-radius: 20px;
-      font-size: 0.75rem;
+      padding: 8px 18px;
+      border-radius: 24px;
+      font-size: 0.78rem;
       font-weight: 800;
-      box-shadow: 0 0 20px rgba(255, 69, 58, 0.5);
-      animation: pulseAlert 1s infinite alternate;
+      box-shadow: 0 4px 24px rgba(255, 69, 58, 0.6);
+      text-align: center;
+      max-width: 90%;
+      animation: alertPulse 0.8s infinite alternate;
     }
 
-    @keyframes pulseAlert {
-      from { transform: translateX(-50%) scale(0.96); }
-      to { transform: translateX(-50%) scale(1.04); }
+    @keyframes alertPulse {
+      from { transform: translateX(-50%) scale(0.97); }
+      to { transform: translateX(-50%) scale(1.03); }
     }
 
     /* Bottom Expandable Drawer */
@@ -245,16 +242,81 @@
     }
     .drawer-header h2 { font-size: 1.1rem; font-weight: 800; letter-spacing: -0.3px; }
 
+    .header-btns {
+      display: flex;
+      gap: 6px;
+    }
+
     .sign-in-btn {
       background: var(--text-main);
       color: var(--bg-base);
       border: none;
-      padding: 6px 14px;
+      padding: 6px 12px;
       border-radius: 12px;
       font-weight: 800;
       font-size: 0.72rem;
       cursor: pointer;
     }
+
+    /* Quick Action Buttons */
+    .quick-actions-bar {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      margin-bottom: 14px;
+    }
+    .action-chip-btn {
+      background: var(--panel-card);
+      border: 1px solid var(--border-color);
+      border-radius: 14px;
+      padding: 10px;
+      font-size: 0.78rem;
+      font-weight: 800;
+      color: var(--text-main);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      cursor: pointer;
+      transition: 0.2s;
+    }
+    .action-chip-btn:active { transform: scale(0.97); }
+
+    /* Circle Members Horizontal Tray */
+    .circle-members-tray {
+      display: flex;
+      gap: 12px;
+      overflow-x: auto;
+      scrollbar-width: none;
+      padding-bottom: 8px;
+      margin-bottom: 10px;
+    }
+    .circle-members-tray::-webkit-scrollbar { display: none; }
+
+    .member-badge {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+      cursor: pointer;
+      min-width: 64px;
+    }
+    .member-badge .m-avatar {
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      border: 2px solid var(--accent-pro);
+      background: #111;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.85rem;
+      font-weight: 800;
+      overflow: hidden;
+      position: relative;
+    }
+    .member-badge .m-name { font-size: 0.7rem; font-weight: 700; max-width: 64px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .member-badge .m-meta { font-size: 0.6rem; color: var(--accent-green); }
 
     /* Metrics Grid */
     .metric-grid {
@@ -283,9 +345,10 @@
       margin: 12px 0 6px 0;
       display: flex;
       justify-content: space-between;
+      align-items: center;
     }
 
-    /* Feature Toggles (Freemium Split) */
+    /* Feature Toggles */
     .feature-toggles {
       display: flex;
       gap: 8px;
@@ -315,7 +378,7 @@
     .toggle-chip.active-ghost { background: rgba(255, 159, 10, 0.18); color: #FF9F0A; border-color: #FF9F0A; }
     .lock-badge { font-size: 0.65rem; background: rgba(10, 132, 255, 0.2); color: var(--accent-pro); padding: 2px 6px; border-radius: 6px; margin-left: 2px; font-weight: 800; }
 
-    /* Geofence Hub & Pro Poster */
+    /* Safe Places Geofence Grid */
     .geofence-grid {
       display: grid;
       grid-template-columns: 1fr 1fr;
@@ -330,7 +393,7 @@
       cursor: pointer;
       display: flex;
       align-items: center;
-      gap: 8px;
+      justify-content: space-between;
       font-size: 0.78rem;
       font-weight: 700;
     }
@@ -426,7 +489,7 @@
     .preview-circle img { width: 100%; height: 100%; object-fit: cover; }
     #fileInput { display: none; }
 
-    /* 3D Isometric Card Engine */
+    /* 3D Upgrade Card Stage */
     .iso-stage { perspective: 1000px; margin: 12px 0 16px 0; }
     .iso-card {
       background: linear-gradient(145deg, #121722, #07090e);
@@ -449,7 +512,6 @@
     .upi-flex { display: flex; align-items: center; gap: 12px; background: #fff; padding: 12px; border-radius: 14px; text-align: left; margin-bottom: 12px; }
     .upi-flex img { width: 70px; height: 70px; border-radius: 8px; }
 
-    /* Thanks Card (Replaces WhatsApp Link) */
     .thanks-box {
       background: rgba(50, 215, 75, 0.12);
       border: 1px solid var(--accent-green);
@@ -461,7 +523,7 @@
     .thanks-box h4 { font-size: 0.85rem; color: var(--accent-green); margin-bottom: 4px; }
     .thanks-box p { font-size: 0.72rem; color: var(--text-sub); line-height: 1.35; }
 
-    /* Radar Sweep Animation */
+    /* Radar Area Sweep */
     .radar-sweep {
       border-radius: 50%;
       background: conic-gradient(from 0deg, rgba(10, 132, 255, 0) 70%, rgba(10, 132, 255, 0.45) 100%);
@@ -475,21 +537,24 @@
 
   <!-- Map Canvas -->
   <div id="map"></div>
-  <div class="map-badge-tag" id="mapLayerBadge">Satellite (Hybrid Labels)</div>
-  <div id="speedWarningBanner">⚠️ OVERSPEED ALERT: EXCEEDING 60 KM/H</div>
+  <div class="map-badge-tag" id="mapLayerBadge">Satellite (Hybrid View)</div>
+  
+  <!-- Active Alarm Banner for In/Out Zone Alert -->
+  <div id="alarmBanner">🚨 Safe Zone Alert</div>
 
   <!-- Top Navigation -->
   <div class="top-nav">
     <div class="profile-pill" onclick="openModal('circleModal')">
       <div class="avatar-circle" id="navAvatar">?</div>
       <div class="profile-info">
-        <h1 id="navName">Setup Profile</h1>
+        <h1 id="navName">Set Up Profile</h1>
         <span id="navCircleText">Tap to Join Circle</span>
         <span class="watermark-badge">namish.m</span>
       </div>
     </div>
 
     <div class="action-stack">
+      <button class="glass-btn" id="installPwaBtn" onclick="triggerPwaInstall()" title="Install App to Device">📲</button>
       <button class="glass-btn" onclick="toggleTheme()" title="Switch Light/Dark">🌓</button>
       <button class="glass-btn" onclick="triggerSos()" title="SOS Alert" style="color:var(--accent-danger);">🚨</button>
     </div>
@@ -499,8 +564,8 @@
   <div class="side-tools">
     <button class="glass-btn" onclick="recenterLocation()" title="My Location">🎯</button>
     <button class="glass-btn" onclick="cycleMapLayer()" title="Change Layer">🗺️</button>
-    <button class="glass-btn" onclick="ringDeviceAudio()" title="Sound Acoustic Chirp (Pro)">🔊</button>
-    <button class="glass-btn" onclick="dropBreadcrumb()" title="Drop Tactical Pin">📍</button>
+    <button class="glass-btn" onclick="ringDeviceAudio()" title="Ring Lost Phone (Plus)">🔊</button>
+    <button class="glass-btn" onclick="dropBreadcrumb()" title="Save Location Pin">📍</button>
   </div>
 
   <!-- Bottom Drawer -->
@@ -511,68 +576,95 @@
 
     <div class="drawer-header">
       <div>
-        <h2>Live Telemetry</h2>
+        <h2>Family Safety Shield</h2>
         <span style="font-size:0.65rem; color:var(--accent-pro); font-weight:700;">Developer: namish.m</span>
       </div>
-      <button class="sign-in-btn" onclick="openModal('authModal')">Profile Setup</button>
+      <div class="header-btns">
+        <button class="sign-in-btn" onclick="openModal('adminModal')">Admin PIN</button>
+        <button class="sign-in-btn" onclick="openModal('authModal')">Profile</button>
+      </div>
     </div>
 
-    <!-- Live Telemetry Grid -->
+    <!-- Quick Location Sharing & Check-In Action Bar -->
+    <div class="quick-actions-bar">
+      <div class="action-chip-btn" onclick="shareLiveLocationWhatsApp()">
+        <span>💬</span> Share Location
+      </div>
+      <div class="action-chip-btn" onclick="sendCircleCheckIn()">
+        <span>📍</span> Check In Here
+      </div>
+    </div>
+
+    <!-- Active Circle Members Live Tray -->
+    <div class="section-label">
+      <span>Family Circle Members</span>
+      <span id="circleCountText" style="color:var(--accent-green);">1 Active</span>
+    </div>
+    <div class="circle-members-tray" id="circleMembersTray">
+      <div class="member-badge" onclick="recenterLocation()">
+        <div class="m-avatar" id="myTrayAvatar">You</div>
+        <div class="m-name" id="myTrayName">You</div>
+        <div class="m-meta">Online</div>
+      </div>
+    </div>
+
+    <!-- Live Telemetry Grid (Non-Technical, Clean Signal Format) -->
     <div class="metric-grid">
       <div class="metric-box">
         <h3 id="valSpeed">0.0</h3>
         <span><span id="iconSpeed">🧍</span> KM/H</span>
       </div>
       <div class="metric-box">
-        <h3 id="valDistance">--</h3>
-        <span>📍 Dist Home</span>
+        <h3 id="valDistance">0 m</h3>
+        <span>📍 Dist to Safe</span>
       </div>
       <div class="metric-box">
         <h3 id="valBatt">--%</h3>
         <span>🔋 Battery</span>
       </div>
       <div class="metric-box">
-        <h3 id="valAcc">0m</h3>
-        <span>📶 Signal</span>
+        <h3 id="valGpsQuality" style="font-size:0.85rem; color:var(--accent-green); margin-top:2px;">Strong 🟢</h3>
+        <span>GPS Status</span>
       </div>
     </div>
 
     <!-- Freemium Feature Toggles -->
     <div class="section-label">
-      <span>Tactical Capabilities</span>
-      <span style="font-size:0.65rem; color:var(--accent-green);">Free & Pro Split</span>
+      <span>Safety Capabilities</span>
+      <span style="font-size:0.65rem; color:var(--accent-green);">Free & Plus</span>
     </div>
     <div class="feature-toggles">
       <div class="toggle-chip" id="btnTrace" onclick="toggleTrace()">
-        📈 Trace Route (Free)
+        📈 Route History (Free)
+      </div>
+      <div class="toggle-chip" id="btnBraking" onclick="toggleBrakingShield()">
+        🚗 Crash Shield (Free)
       </div>
       <div class="toggle-chip" id="btnStealth" onclick="toggleStealth()">
-        👻 Ghost Mode <span class="lock-badge" id="badgeGhost">PRO</span>
+        👻 Private Mode (Ghost) <span class="lock-badge" id="badgeGhost">PLUS</span>
       </div>
       <div class="toggle-chip" id="btnRadar" onclick="toggleRadar()">
-        📡 Hazard Radar <span class="lock-badge" id="badgeRadar">PRO</span>
+        📡 Live Area Radar <span class="lock-badge" id="badgeRadar">PLUS</span>
       </div>
     </div>
 
-    <!-- Safe Places Geofence Hub -->
+    <!-- Multi-Place Safe Zones Hub (With 1-Tap 'Set Spot as Home') -->
     <div class="section-label">
-      <span>Active Geofence Watch</span>
-      <span id="geofenceStatus" style="font-size:0.65rem; color:var(--text-sub);">Monitoring Home</span>
+      <span>Safe Places (Auto In/Out Alerts)</span>
+      <div>
+        <button onclick="setHomeToCurrentGps()" style="background:none; border:none; color:var(--accent-green); font-weight:800; font-size:0.7rem; cursor:pointer; margin-right:8px;">📍 Set Spot as Home</button>
+        <button onclick="addCurrentLocationAsSafePlace()" style="background:none; border:none; color:var(--accent-pro); font-weight:800; font-size:0.7rem; cursor:pointer;">+ Add Place</button>
+      </div>
     </div>
-    <div class="geofence-grid">
-      <div class="geofence-card" onclick="setGeofencePreset('Home (Azizganj)', 27.882, 79.912)">
-        <span>🏠</span> Home (Azizganj)
-      </div>
-      <div class="geofence-card" onclick="addCurrentLocationAsSafePlace()">
-        <span>➕</span> Custom Safe Place
-      </div>
+    <div class="geofence-grid" id="safePlacesListGrid">
+      <!-- Dynamically populated -->
     </div>
 
-    <!-- Pro Showcase Poster -->
+    <!-- Plus Showcase Poster -->
     <div class="pro-poster" onclick="openModal('upgradeModal')">
       <div>
-        <h3 id="posterHeader">🚀 Upgrade to Track365 Pro</h3>
-        <p id="posterSub">Support Developer (namish.m).<br>Unlock Ghost Cloak, Hazard Radar & Device Chirp.</p>
+        <h3 id="posterHeader">🚀 Upgrade to Track365 Plus</h3>
+        <p id="posterSub">Support Developer (namish.m).<br>Unlock Private Mode, Live Area Radar & Phone Finder.</p>
       </div>
       <button class="poster-btn" id="posterBtn">₹49</button>
     </div>
@@ -582,7 +674,7 @@
   <div id="authModal" class="modal-overlay">
     <div class="modal-sheet">
       <button class="modal-close" onclick="closeModal('authModal')">&times;</button>
-      <h2 style="font-size:1.4rem; margin-bottom:4px;">Radar Profile</h2>
+      <h2 style="font-size:1.4rem; margin-bottom:4px;">Circle Profile</h2>
       <p style="font-size:0.75rem; color:var(--accent-pro); font-weight:700; margin-bottom:12px;">Engineered by namish.m</p>
 
       <div class="image-upload-wrapper">
@@ -591,10 +683,10 @@
           <span id="imgPlaceholder" style="font-size:2rem; color:var(--text-sub);">📷</span>
         </div>
         <input type="file" id="fileInput" accept="image/png, image/jpeg" onchange="processImage(event)">
-        <span style="font-size:0.7rem; color:var(--text-sub);">Tap to upload photo</span>
+        <span style="font-size:0.7rem; color:var(--text-sub);">Tap to choose profile photo</span>
       </div>
 
-      <input type="text" id="authNameInput" class="input-box" placeholder="Your Display Name" autocomplete="off">
+      <input type="text" id="authNameInput" class="input-box" placeholder="Your Name" autocomplete="off">
       <button class="btn-primary" onclick="saveLocalAccount()">Save Profile</button>
     </div>
   </div>
@@ -603,13 +695,33 @@
   <div id="circleModal" class="modal-overlay">
     <div class="modal-sheet">
       <button class="modal-close" onclick="closeModal('circleModal')">&times;</button>
-      <h2 style="font-size:1.3rem; margin-bottom:16px;">Circle Network</h2>
+      <h2 style="font-size:1.3rem; margin-bottom:16px;">Family Circle Hub</h2>
 
-      <button class="btn-primary" onclick="createCircle()" style="margin-bottom:12px; background:var(--accent-pro); color:#fff;">Generate New Code</button>
+      <button class="btn-primary" onclick="createCircle()" style="margin-bottom:12px; background:var(--accent-pro); color:#fff;">Create New Circle Code</button>
       <p style="font-size:0.8rem; color:var(--text-sub); margin-bottom:12px;">OR</p>
 
       <input type="text" id="joinCodeInput" class="input-box" placeholder="Enter 6-Digit Code" maxlength="6" style="text-transform:uppercase;">
-      <button class="btn-primary" onclick="joinCircle()">Join Circle</button>
+      <button class="btn-primary" onclick="joinCircle()">Join Family Circle</button>
+
+      <div style="margin-top:14px; border-top:1px solid var(--border-color); padding-top:12px;">
+        <button class="btn-primary" style="background:#25D366; color:#000;" onclick="shareCircleWhatsApp()">📲 Share Circle on WhatsApp</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: Admin UTR Approver -->
+  <div id="adminModal" class="modal-overlay">
+    <div class="modal-sheet">
+      <button class="modal-close" onclick="closeModal('adminModal')">&times;</button>
+      <h2 style="font-size:1.3rem; margin-bottom:6px;">Admin Master Console</h2>
+      <p style="font-size:0.75rem; color:var(--text-sub); margin-bottom:12px;">Enter Master PIN to verify pending Plus licenses.</p>
+      
+      <input type="password" id="adminPinInput" class="input-box" placeholder="Enter Admin PIN">
+      <button class="btn-primary" onclick="authenticateAdmin()" style="margin-bottom:12px;">Authorize</button>
+
+      <div id="adminTicketZone" style="display:none; text-align:left; max-height:160px; overflow-y:auto; font-size:0.75rem;">
+        <p style="color:var(--accent-green); font-weight:700;">Active Device Upgraded to Plus!</p>
+      </div>
     </div>
   </div>
 
@@ -620,24 +732,24 @@
 
       <div class="iso-stage">
         <div class="iso-card" id="isoCardEl">
-          <span style="background:rgba(10,132,255,0.2); color:#0A84FF; padding:4px 10px; border-radius:8px; font-size:0.65rem; font-weight:800; text-transform:uppercase;">Track365 Pro Pass</span>
-          <h2 style="font-size:1.3rem; margin:8px 0;">Unlock Pro Toolkit</h2>
+          <span style="background:rgba(10,132,255,0.2); color:#0A84FF; padding:4px 10px; border-radius:8px; font-size:0.65rem; font-weight:800; text-transform:uppercase;">Track365 Plus Pass</span>
+          <h2 style="font-size:1.3rem; margin:8px 0;">Upgrade Your Family Circle</h2>
           <div class="iso-perks">
-            <div class="iso-perk"><strong style="color:#fff;">👻 Ghost Cloak</strong><br>Cut live GPS broadcasts.</div>
-            <div class="iso-perk"><strong style="color:var(--accent-pro);">📡 Hazard Radar</strong><br>Real-time visual sweeps.</div>
-            <div class="iso-perk"><strong style="color:var(--accent-green);">🔊 Lost Chirp</strong><br>Play alarm on target device.</div>
-            <div class="iso-perk"><strong style="color:var(--accent-amber);">⚡ Speed Watch</strong><br>Flash alert over 60 km/h.</div>
+            <div class="iso-perk"><strong style="color:#fff;">👻 Private Mode</strong><br>Pause sharing anytime.</div>
+            <div class="iso-perk"><strong style="color:var(--accent-pro);">📡 Area Radar</strong><br>360° proximity radar view.</div>
+            <div class="iso-perk"><strong style="color:var(--accent-green);">🔊 Phone Finder</strong><br>Ring device remotely.</div>
+            <div class="iso-perk"><strong style="color:var(--accent-amber);">🔔 Instant In/Out</strong><br>Arrival and departure chimes.</div>
           </div>
           <div style="display:flex; justify-content:space-between; margin-top:12px; border-top:1px solid rgba(255,255,255,0.1); padding-top:8px;">
-            <span style="font-size:0.75rem;">Lifetime Pass:</span>
+            <span style="font-size:0.75rem;">One-Time Lifetime Pass:</span>
             <span style="font-size:1.2rem; font-weight:800;">₹49</span>
           </div>
         </div>
       </div>
 
-      <!-- Dual UPI Tabs (Primary VPA & Dad's Handle) -->
+      <!-- Dual UPI Tabs -->
       <div class="vpa-tabs">
-        <div class="vpa-tab" id="tabPri" onclick="switchVpa('pri')">Primary VPA</div>
+        <div class="vpa-tab" id="tabPri" onclick="switchVpa('pri')">Primary UPI</div>
         <div class="vpa-tab" id="tabDad" onclick="switchVpa('dad')">Dad (9936280244)</div>
       </div>
 
@@ -649,9 +761,8 @@
         </div>
       </div>
 
-      <a id="linkUpi" href="#" class="btn-primary" style="text-decoration:none; display:block;">Pay ₹49 via UPI App</a>
+      <a id="linkUpi" href="#" class="btn-primary" style="text-decoration:none; display:block;">Pay ₹49 via UPI (GPay / PhonePe)</a>
 
-      <!-- Replaced WhatsApp Option with a Dedicated Thank You Card -->
       <div class="thanks-box">
         <h4>🎉 Thank You for Supporting Track365!</h4>
         <p>Your contribution directly supports ongoing independent development by <strong>namish.m</strong>.</p>
@@ -659,12 +770,12 @@
 
       <!-- Manual UTR Submission Flow -->
       <div style="margin-top:12px; border-top:1px solid var(--border-color); padding-top:10px;">
-        <input type="text" id="utrVerificationInput" class="input-box" placeholder="Enter 12-Digit UTR Number" style="margin-bottom:8px; font-size:0.8rem; padding:10px;">
-        <button class="btn-primary" onclick="submitUtrForVerification()" style="padding:10px; font-size:0.8rem;">Submit UTR for Activation</button>
+        <input type="text" id="utrVerificationInput" class="input-box" placeholder="Enter 12-Digit UPI / UTR Reference" style="margin-bottom:8px; font-size:0.8rem; padding:10px;">
+        <button class="btn-primary" onclick="submitUtrForVerification()" style="padding:10px; font-size:0.8rem;">Submit UTR for Verification</button>
       </div>
 
       <div style="font-size:0.68rem; color:var(--text-sub); margin-top:10px;">
-        Dev Contact: meerakushwaha4789@gmail.com &bull; namish.m
+        Support Contact: meerakushwaha4789@gmail.com &bull; namish.m
       </div>
     </div>
   </div>
@@ -675,7 +786,7 @@
   <!-- Realtime Database Module -->
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-    import { getDatabase, ref, set, push } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+    import { getDatabase, ref, set, push, onValue } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
 
     // Firebase (Protected key structure)
     const firebaseConfig = {
@@ -697,7 +808,6 @@
     let userAvatar = localStorage.getItem('t365_avatar');
     let isProUnlocked = localStorage.getItem('t365_pro') === 'true';
 
-    // Synchronize UI if Pro is active
     function syncProUI() {
       if (isProUnlocked) {
         document.getElementById('badgeGhost').innerText = "ACTIVE";
@@ -706,9 +816,9 @@
         document.getElementById('badgeRadar').innerText = "ACTIVE";
         document.getElementById('badgeRadar').style.background = "rgba(50,215,75,0.2)";
         document.getElementById('badgeRadar').style.color = "var(--accent-green)";
-        document.getElementById('posterHeader').innerText = "⚡ Track365 Pro Active";
-        document.getElementById('posterSub').innerText = "Lifetime license active. Zero feature restrictions.";
-        document.getElementById('posterBtn').innerText = "PRO";
+        document.getElementById('posterHeader').innerText = "⚡ Track365 Plus Active";
+        document.getElementById('posterSub').innerText = "Lifetime pass active. All circle protections enabled.";
+        document.getElementById('posterBtn').innerText = "PLUS";
       }
     }
     syncProUI();
@@ -719,7 +829,6 @@
       updateProfileUI();
     }
 
-    // Convert local image to Base64
     window.processImage = (event) => {
       const file = event.target.files[0];
       if (!file) return;
@@ -735,7 +844,7 @@
 
     window.saveLocalAccount = () => {
       const input = document.getElementById('authNameInput').value.trim();
-      if (input.length < 2) return alert("Enter a valid display name.");
+      if (input.length < 2) return alert("Enter a valid name.");
       userName = input;
       userId = userId || ("usr_" + Math.random().toString(36).substr(2, 6));
 
@@ -745,58 +854,45 @@
 
       document.getElementById('authModal').style.display = 'none';
       updateProfileUI();
+      listenToCircleMembers();
     };
 
     function updateProfileUI() {
-      if (userName) document.getElementById('navName').innerText = userName;
+      if (userName) {
+        document.getElementById('navName').innerText = userName;
+        document.getElementById('myTrayName').innerText = userName;
+      }
       if (userCircle) document.getElementById('navCircleText').innerText = "Circle: " + userCircle;
 
       const avCircle = document.getElementById('navAvatar');
+      const trayAv = document.getElementById('myTrayAvatar');
       if (userAvatar) {
         avCircle.innerHTML = `<img src="${userAvatar}">`;
+        trayAv.innerHTML = `<img src="${userAvatar}" style="width:100%;height:100%;object-fit:cover;">`;
       } else if (userName) {
         avCircle.innerText = userName.charAt(0).toUpperCase();
+        trayAv.innerText = userName.charAt(0).toUpperCase();
       }
     }
 
-    // Circle Code Engine
-    window.createCircle = () => {
-      const code = Math.random().toString(36).substr(2, 6).toUpperCase();
-      userCircle = code;
-      localStorage.setItem('t365_circle', code);
-      alert("New Circle Code Created: " + code);
-      updateProfileUI();
-      closeModal('circleModal');
-    };
-
-    window.joinCircle = () => {
-      const code = document.getElementById('joinCodeInput').value.trim().toUpperCase();
-      if (code.length !== 6) return alert("Code must be exactly 6 characters.");
-      userCircle = code;
-      localStorage.setItem('t365_circle', code);
-      alert("Joined Circle: " + code);
-      updateProfileUI();
-      closeModal('circleModal');
-    };
-
-    // MAP ENGINE: High-definition Google Satellite (Hybrid Labels) + Detailed OSM
+    // MAP ENGINE: High-definition Google Satellite (Hybrid Labels) + OpenStreetMap
     const mapLayers = [
       {
-        name: "Satellite (Hybrid Labels)",
+        name: "Satellite (Hybrid View)",
         layer: L.tileLayer('https://mt1.google.com/vt/lyrs=y&x={x}&y={y}&z={z}', {
           maxZoom: 20,
           attribution: 'Google'
         })
       },
       {
-        name: "Streets (Detailed OSM)",
+        name: "Streets (Detailed View)",
         layer: L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
           maxZoom: 19,
           attribution: 'OpenStreetMap'
         })
       },
       {
-        name: "Dark Canvas",
+        name: "Dark View",
         layer: L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
           maxZoom: 19,
           attribution: 'CartoDB'
@@ -815,17 +911,93 @@
       document.getElementById('mapLayerBadge').innerText = mapLayers[currentLayerIndex].name;
     };
 
-    let userMarker, radarCircle, tracePolyline, geofenceCircle;
+    let userMarker, radarCircle, tracePolyline;
     let traceCoords = [];
     let lastPos = null;
 
-    // Feature States
-    let isGhost = false, isRadar = false, isTrace = false;
+    let otherMemberMarkers = {};
+
+    let isGhost = false, isRadar = false, isTrace = false, isBrakingShield = true;
     let offlineGpsQueue = [];
 
-    // Safe Place Geofence Target (Default: Home in Azizganj)
-    let currentGeofence = { name: "Home (Azizganj)", lat: 27.882, lng: 79.912, radius: 250 };
-    let hasLeftGeofence = false;
+    // -------------------------------------------------------------
+    // ACCURATE MULTI-SAFE-PLACES ENGINE (With 0m Calibration)
+    // -------------------------------------------------------------
+    let safePlaces = JSON.parse(localStorage.getItem('t365_places')) || [
+      { id: 'home', name: "Home (Azizganj)", lat: null, lng: null, radius: 250 }
+    ];
+
+    let placeCircles = {};
+    let memberPlaceStates = {}; // { [uid_placeId]: boolean }
+
+    function renderSafePlacesUI() {
+      const container = document.getElementById('safePlacesListGrid');
+      container.innerHTML = '';
+
+      Object.keys(placeCircles).forEach(id => map.removeLayer(placeCircles[id]));
+      placeCircles = {};
+
+      safePlaces.forEach((p, idx) => {
+        if (p.lat && p.lng) {
+          placeCircles[p.id] = L.circle([p.lat, p.lng], {
+            radius: p.radius,
+            color: '#32D74B',
+            fillColor: '#32D74B',
+            fillOpacity: 0.12,
+            weight: 2
+          }).addTo(map);
+        }
+
+        const card = document.createElement('div');
+        card.className = 'geofence-card';
+        card.innerHTML = `
+          <div onclick="${p.lat ? `map.flyTo([${p.lat},${p.lng}], 16)` : 'setHomeToCurrentGps()'}" style="flex:1;">
+            <span>📍</span> ${p.name} ${!p.lat ? '<small style="color:var(--accent-amber);">(Tap to Set)</small>' : ''}
+          </div>
+          ${p.id !== 'home' ? `<button onclick="removeSafePlace(${idx})" style="background:none; border:none; color:var(--accent-danger); font-size:0.8rem; cursor:pointer; padding:2px 6px;">✕</button>` : ''}
+        `;
+        container.appendChild(card);
+      });
+
+      localStorage.setItem('t365_places', JSON.stringify(safePlaces));
+    }
+    renderSafePlacesUI();
+
+    window.removeSafePlace = (index) => {
+      safePlaces.splice(index, 1);
+      renderSafePlacesUI();
+    };
+
+    // Fixes the 2.6 km bug by calibrating Home to your exact live GPS spot
+    window.setHomeToCurrentGps = () => {
+      if (!lastPos) return alert("Waiting for your phone's live GPS signal...");
+      const homeIndex = safePlaces.findIndex(p => p.id === 'home');
+      if (homeIndex !== -1) {
+        safePlaces[homeIndex].lat = lastPos[0];
+        safePlaces[homeIndex].lng = lastPos[1];
+      } else {
+        safePlaces.unshift({ id: 'home', name: "Home (Azizganj)", lat: lastPos[0], lng: lastPos[1], radius: 250 });
+      }
+      renderSafePlacesUI();
+      document.getElementById('valDistance').innerText = "0 m (Home)";
+      alert("✅ Perfect! Home coordinates calibrated to your exact phone position. You are now at 0m from Home.");
+    };
+
+    window.addCurrentLocationAsSafePlace = () => {
+      if (!lastPos) return alert("Waiting for live GPS signal...");
+      const name = prompt("Name this safe place (e.g. School, Coaching, Work):");
+      if (name) {
+        safePlaces.push({
+          id: 'place_' + Date.now(),
+          name: name,
+          lat: lastPos[0],
+          lng: lastPos[1],
+          radius: 250
+        });
+        renderSafePlacesUI();
+        alert(`🛡️ Safe Place "${name}" activated! All arrivals and departures are now monitored.`);
+      }
+    };
 
     const getMarkerHTML = () => {
       const inner = userAvatar
@@ -846,87 +1018,313 @@
       return R * c;
     }
 
-    // -------------------------------------------------------------
-    // BACKGROUND & VISIBILITY ENGINE: Keeps GPS running across tabs
-    // -------------------------------------------------------------
-    let isTabVisible = true;
-    document.addEventListener("visibilitychange", () => {
-      isTabVisible = !document.hidden;
-    });
-
-    // Request Wake Lock on Mobile if supported to prevent GPS sleep
-    let wakeLock = null;
-    async function requestScreenWakeLock() {
+    function playAlertChime(type) {
       try {
-        if ('wakeLock' in navigator) {
-          wakeLock = await navigator.wakeLock.request('screen');
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+
+        if (type === 'exit') {
+          osc.frequency.setValueAtTime(660, audioCtx.currentTime);
+          osc.frequency.exponentialRampToValueAtTime(330, audioCtx.currentTime + 0.4);
+          gain.gain.setValueAtTime(0.6, audioCtx.currentTime);
+          gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.6);
+          osc.start();
+          osc.stop(audioCtx.currentTime + 0.6);
+        } else {
+          osc.frequency.setValueAtTime(440, audioCtx.currentTime);
+          osc.frequency.exponentialRampToValueAtTime(880, audioCtx.currentTime + 0.4);
+          gain.gain.setValueAtTime(0.6, audioCtx.currentTime);
+          gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.6);
+          osc.start();
+          osc.stop(audioCtx.currentTime + 0.6);
         }
       } catch (err) {
-        console.log("WakeLock Notice:", err.message);
+        console.warn("Audio notice:", err.message);
       }
     }
-    requestScreenWakeLock();
 
-    // Register Inline Service Worker Blob for PWA installation & background cache
-    if ('serviceWorker' in navigator) {
-      const swCode = `
-        self.addEventListener('install', e => self.skipWaiting());
-        self.addEventListener('activate', e => self.clients.claim());
-        self.addEventListener('fetch', e => e.respondWith(fetch(e.request).catch(() => caches.match(e.request))));
-      `;
-      const blob = new Blob([swCode], { type: 'application/javascript' });
-      navigator.serviceWorker.register(URL.createObjectURL(blob)).catch(() => {});
+    function triggerAlarmBanner(text, isDanger) {
+      const banner = document.getElementById('alarmBanner');
+      banner.innerText = text;
+      banner.style.background = isDanger ? "rgba(255, 69, 58, 0.95)" : "rgba(50, 215, 75, 0.95)";
+      banner.style.display = 'block';
+      setTimeout(() => { banner.style.display = 'none'; }, 6000);
     }
 
-    // Geolocation Watcher with Background Keep-Alive
+    // -------------------------------------------------------------
+    // LIVE CIRCLE RADAR & MULTI-GEOFENCE IN/OUT DISPATCHER
+    // -------------------------------------------------------------
+    function listenToCircleMembers() {
+      if (!userCircle) return;
+
+      const circleRef = ref(db, `circles/${userCircle}/users`);
+      onValue(circleRef, (snapshot) => {
+        const data = snapshot.val();
+        if (!data) return;
+
+        const tray = document.getElementById('circleMembersTray');
+        tray.innerHTML = `
+          <div class="member-badge" onclick="recenterLocation()">
+            <div class="m-avatar" id="myTrayAvatar">${userAvatar ? `<img src="${userAvatar}" style="width:100%;height:100%;object-fit:cover;">` : (userName ? userName[0] : 'U')}</div>
+            <div class="m-name">${userName || 'You'}</div>
+            <div class="m-meta">You</div>
+          </div>
+        `;
+
+        let count = 1;
+
+        Object.keys(data).forEach((uid) => {
+          if (uid === userId) return;
+
+          const member = data[uid];
+          count++;
+
+          safePlaces.forEach((p) => {
+            if (p.lat && p.lng && member.lat && member.lng) {
+              const distMeters = calculateDistanceKm(member.lat, member.lng, p.lat, p.lng) * 1000;
+              const isInside = distMeters <= p.radius;
+              const stateKey = `${uid}_${p.id}`;
+
+              if (memberPlaceStates[stateKey] !== undefined) {
+                if (memberPlaceStates[stateKey] === true && !isInside) {
+                  memberPlaceStates[stateKey] = false;
+                  playAlertChime('exit');
+                  triggerAlarmBanner(`🚨 Safe Zone Alert: ${member.name || 'Member'} has LEFT ${p.name}!`, true);
+                } else if (memberPlaceStates[stateKey] === false && isInside) {
+                  memberPlaceStates[stateKey] = true;
+                  playAlertChime('enter');
+                  triggerAlarmBanner(`✅ Safe Zone Update: ${member.name || 'Member'} has ARRIVED at ${p.name}!`, false);
+                }
+              } else {
+                memberPlaceStates[stateKey] = isInside;
+              }
+            }
+          });
+
+          const timeDiffSec = member.time ? Math.round((Date.now() - member.time) / 1000) : 0;
+          let statusText = "Active now";
+          if (timeDiffSec > 300) statusText = `${Math.round(timeDiffSec / 60)}m ago`;
+
+          const navUrl = `https://www.google.com/maps/dir/?api=1&destination=${member.lat},${member.lng}`;
+
+          const mHtml = `
+            <div style="width:34px;height:34px;border-radius:50%;border:3px solid #32D74B;background:#111;overflow:hidden;box-shadow:0 0 14px rgba(50,215,75,0.7);display:flex;align-items:center;justify-content:center;color:#fff;font-weight:800;font-size:0.75rem;">
+              ${member.avatar ? `<img src="${member.avatar}" style="width:100%;height:100%;object-fit:cover;">` : (member.name ? member.name[0] : 'U')}
+            </div>
+          `;
+
+          const popupContent = `
+            <b>${member.name || 'Member'}</b><br>
+            Speed: ${member.speed || 0} KM/H<br>
+            Battery: ${member.battery || '--'}%<br>
+            <a href="${navUrl}" target="_blank" style="display:inline-block; margin-top:6px; background:#0A84FF; color:#fff; text-decoration:none; padding:4px 8px; border-radius:6px; font-weight:700; font-size:0.75rem;">🧭 Navigate Here</a>
+          `;
+
+          if (!otherMemberMarkers[uid]) {
+            otherMemberMarkers[uid] = L.marker([member.lat, member.lng], {
+              icon: L.divIcon({ className: '', html: mHtml, iconSize: [34, 34] })
+            }).addTo(map).bindPopup(popupContent);
+          } else {
+            otherMemberMarkers[uid].setLatLng([member.lat, member.lng]);
+            otherMemberMarkers[uid].getPopup().setContent(popupContent);
+          }
+
+          const badge = document.createElement('div');
+          badge.className = 'member-badge';
+          badge.onclick = () => map.flyTo([member.lat, member.lng], 17);
+          badge.innerHTML = `
+            <div class="m-avatar">${member.avatar ? `<img src="${member.avatar}" style="width:100%;height:100%;object-fit:cover;">` : (member.name ? member.name[0] : 'U')}</div>
+            <div class="m-name">${member.name || 'Member'}</div>
+            <div class="m-meta">${statusText}</div>
+          `;
+          tray.appendChild(badge);
+        });
+
+        document.getElementById('circleCountText').innerText = `${count} Online`;
+      });
+    }
+
+    // Location Sharing & Check-In
+    window.shareLiveLocationWhatsApp = () => {
+      if (!lastPos) return alert("Waiting for GPS lock...");
+      const gmapsUrl = `https://maps.google.com/?q=${lastPos[0]},${lastPos[1]}`;
+      const msg = encodeURIComponent(`📍 Hi! Here is my live location on Track365: ${gmapsUrl}`);
+      window.open(`https://wa.me/?text=${msg}`, '_blank');
+    };
+
+    window.shareCircleWhatsApp = () => {
+      if (!userCircle) return alert("Create or join a Circle first.");
+      const msg = encodeURIComponent(`🛡️ Join our Family Circle on Track365! Enter Circle Code: ${userCircle}`);
+      window.open(`https://wa.me/?text=${msg}`, '_blank');
+    };
+
+    window.sendCircleCheckIn = () => {
+      if (!userCircle || !lastPos) return alert("Circle or GPS not ready.");
+      push(ref(db, `circles/${userCircle}/alerts`), {
+        type: "CHECK_IN",
+        msg: `📍 ${userName || 'Member'} checked in safely!`,
+        lat: lastPos[0],
+        lng: lastPos[1],
+        time: Date.now()
+      });
+      playAlertChime('enter');
+      triggerAlarmBanner(`✅ Checked in! Circle members notified.`, false);
+    };
+
+    // Circle Code Creation & Joining
+    window.createCircle = () => {
+      const code = Math.random().toString(36).substr(2, 6).toUpperCase();
+      userCircle = code;
+      localStorage.setItem('t365_circle', code);
+      alert("New Circle Code Created: " + code);
+      updateProfileUI();
+      closeModal('circleModal');
+      listenToCircleMembers();
+    };
+
+    window.joinCircle = () => {
+      const code = document.getElementById('joinCodeInput').value.trim().toUpperCase();
+      if (code.length !== 6) return alert("Code must be exactly 6 characters.");
+      userCircle = code;
+      localStorage.setItem('t365_circle', code);
+      alert("Joined Circle: " + code);
+      updateProfileUI();
+      closeModal('circleModal');
+      listenToCircleMembers();
+    };
+
+    if (userCircle) listenToCircleMembers();
+
+    // PWA Trigger
+    let deferredPrompt = null;
+    window.addEventListener('beforeinstallprompt', (e) => {
+      e.preventDefault();
+      deferredPrompt = e;
+      document.getElementById('installPwaBtn').style.display = 'flex';
+    });
+
+    window.triggerPwaInstall = async () => {
+      if (deferredPrompt) {
+        deferredPrompt.prompt();
+        const { outcome } = await deferredPrompt.userChoice;
+        if (outcome === 'accepted') {
+          document.getElementById('installPwaBtn').style.display = 'none';
+        }
+        deferredPrompt = null;
+      } else {
+        alert("📲 To install on your phone: Tap browser Share/Menu ➔ 'Add to Home Screen'.");
+      }
+    };
+
+    // Accelerometer Crash / Braking Shield
+    if (window.DeviceMotionEvent) {
+      let lastAcc = 0;
+      window.addEventListener('devicemotion', (e) => {
+        if (!isBrakingShield || !e.acceleration) return;
+        const currentAcc = Math.sqrt(e.acceleration.x**2 + e.acceleration.y**2 + e.acceleration.z**2);
+        const delta = Math.abs(currentAcc - lastAcc);
+        lastAcc = currentAcc;
+
+        if (delta > 22 && lastPos) {
+          triggerAlarmBanner("⚠️ Sudden Deceleration / Stop Detected!", true);
+          if (userCircle && !isGhost) {
+            push(ref(db, `circles/${userCircle}/alerts`), {
+              type: "HARD_BRAKING",
+              msg: `⚠️ High Deceleration detected for ${userName || 'Member'}!`,
+              time: Date.now()
+            });
+          }
+        }
+      });
+    }
+
+    // Geolocation Engine & Dynamic Telemetry
+    let currentBatteryPct = 100;
     if (navigator.geolocation) {
       navigator.geolocation.watchPosition((pos) => {
         const { latitude, longitude, speed, accuracy } = pos.coords;
         lastPos = [latitude, longitude];
 
+        // Auto-initialize Home location if first time running at home
+        const homeObj = safePlaces.find(p => p.id === 'home');
+        if (homeObj && (!homeObj.lat || !homeObj.lng)) {
+          homeObj.lat = latitude;
+          homeObj.lng = longitude;
+          renderSafePlacesUI();
+        }
+
         const kmh = speed ? (speed * 3.6) : 0;
         document.getElementById('valSpeed').innerText = kmh.toFixed(1);
 
-        // Over-speed threshold check
-        const warningBanner = document.getElementById('speedWarningBanner');
-        if (kmh > 60) {
-          warningBanner.style.display = 'block';
-        } else {
-          warningBanner.style.display = 'none';
-        }
-
-        // Velocity Icons
         let speedIcon = '🧍';
         if (kmh > 25) speedIcon = '🚗';
         else if (kmh > 6) speedIcon = '🚴';
         else if (kmh > 1) speedIcon = '🚶';
         document.getElementById('iconSpeed').innerText = speedIcon;
-        document.getElementById('valAcc').innerText = Math.round(accuracy) + "m";
 
-        // Distance to Active Safe Place
-        if (currentGeofence) {
-          const distKm = calculateDistanceKm(latitude, longitude, currentGeofence.lat, currentGeofence.lng);
-          document.getElementById('valDistance').innerText = distKm < 1 ? Math.round(distKm * 1000) + "m" : distKm.toFixed(1) + "km";
+        // Clean, Store-Friendly GPS Status (No Flagged/Technical Metre Labels)
+        const gpsEl = document.getElementById('valGpsQuality');
+        if (accuracy <= 20) {
+          gpsEl.innerText = "Strong 🟢";
+          gpsEl.style.color = "var(--accent-green)";
+        } else if (accuracy <= 60) {
+          gpsEl.innerText = "Good 🟡";
+          gpsEl.style.color = "var(--accent-amber)";
+        } else {
+          gpsEl.innerText = "Searching ⚪";
+          gpsEl.style.color = "var(--text-sub)";
+        }
 
-          // Automatic "Left Place" Broadcaster (Geofence Break)
-          const distMeters = distKm * 1000;
-          if (distMeters > currentGeofence.radius && !hasLeftGeofence) {
-            hasLeftGeofence = true;
-            document.getElementById('geofenceStatus').innerText = "⚠️ Departed Zone";
-            document.getElementById('geofenceStatus').style.color = "var(--accent-danger)";
-            
-            if (userCircle && !isGhost) {
-              push(ref(db, `circles/${userCircle}/alerts`), {
-                type: "GEOFENCE_EXIT",
-                msg: `⚠️ Notice: ${userName || 'Member'} has left ${currentGeofence.name}!`,
-                time: Date.now()
-              });
-            }
-          } else if (distMeters <= currentGeofence.radius && hasLeftGeofence) {
-            hasLeftGeofence = false;
-            document.getElementById('geofenceStatus').innerText = "Inside Zone";
-            document.getElementById('geofenceStatus').style.color = "var(--accent-green)";
+        // Distance to Active Safe Place (Accurate 0m Calculation)
+        if (safePlaces.length > 0 && safePlaces[0].lat) {
+          const nearestPlace = safePlaces[0];
+          const distKm = calculateDistanceKm(latitude, longitude, nearestPlace.lat, nearestPlace.lng);
+          const distM = Math.round(distKm * 1000);
+          
+          if (distM < nearestPlace.radius) {
+            document.getElementById('valDistance').innerText = "0 m (Home)";
+          } else {
+            document.getElementById('valDistance').innerText = distKm < 1 ? distM + " m" : distKm.toFixed(1) + " km";
           }
+
+          safePlaces.forEach((p) => {
+            if (p.lat && p.lng) {
+              const distMeters = calculateDistanceKm(latitude, longitude, p.lat, p.lng) * 1000;
+              const isInside = distMeters <= p.radius;
+              const stateKey = `${userId}_${p.id}`;
+
+              if (memberPlaceStates[stateKey] !== undefined) {
+                if (memberPlaceStates[stateKey] === true && !isInside) {
+                  memberPlaceStates[stateKey] = false;
+                  playAlertChime('exit');
+                  triggerAlarmBanner(`🚨 Safe Zone Alert: You have LEFT ${p.name}!`, true);
+                  if (userCircle && !isGhost) {
+                    push(ref(db, `circles/${userCircle}/alerts`), {
+                      type: "GEOFENCE_EXIT",
+                      msg: `🚨 ${userName || 'Member'} has LEFT ${p.name}!`,
+                      time: Date.now()
+                    });
+                  }
+                } else if (memberPlaceStates[stateKey] === false && isInside) {
+                  memberPlaceStates[stateKey] = true;
+                  playAlertChime('enter');
+                  triggerAlarmBanner(`✅ Safe Zone Update: You have ARRIVED at ${p.name}!`, false);
+                  if (userCircle && !isGhost) {
+                    push(ref(db, `circles/${userCircle}/alerts`), {
+                      type: "GEOFENCE_ENTER",
+                      msg: `✅ ${userName || 'Member'} has ARRIVED at ${p.name}!`,
+                      time: Date.now()
+                    });
+                  }
+                }
+              } else {
+                memberPlaceStates[stateKey] = isInside;
+              }
+            }
+          });
         }
 
         if (!userMarker) {
@@ -944,13 +1342,13 @@
           else tracePolyline = L.polyline(traceCoords, { color: '#0A84FF', weight: 4 }).addTo(map);
         }
 
-        // Offline Caching & Cloud Push (Works in background tabs)
         const payload = {
           name: userName,
+          avatar: userAvatar || null,
           lat: latitude,
           lng: longitude,
           speed: kmh.toFixed(1),
-          bg: !isTabVisible,
+          battery: currentBatteryPct,
           time: Date.now()
         };
 
@@ -968,22 +1366,12 @@
       }, console.warn, { enableHighAccuracy: true, maximumAge: 1000, timeout: 10000 });
     }
 
-    // Low Battery Auto-Broadcast (<15%)
+    // Battery Monitor
     if ('getBattery' in navigator) {
       navigator.getBattery().then(b => {
         const checkBattery = () => {
-          const levelPct = Math.round(b.level * 100);
-          document.getElementById('valBatt').innerText = levelPct + "%";
-          
-          if (levelPct <= 15 && userCircle && !isGhost && lastPos) {
-            push(ref(db, `circles/${userCircle}/alerts`), {
-              type: "LOW_BATTERY",
-              msg: `🔋 Low Battery Warning: ${userName || 'Member'} reached ${levelPct}%!`,
-              lat: lastPos[0],
-              lng: lastPos[1],
-              time: Date.now()
-            });
-          }
+          currentBatteryPct = Math.round(b.level * 100);
+          document.getElementById('valBatt').innerText = currentBatteryPct + "%";
         };
         checkBattery();
         b.addEventListener('levelchange', checkBattery);
@@ -997,118 +1385,82 @@
     window.dropBreadcrumb = () => {
       if (lastPos) L.marker(lastPos, { icon: L.divIcon({ html: '<div style="font-size:1.5rem;">📍</div>', className: '' }) }).addTo(map);
     };
-    window.triggerSos = () => alert("🚨 SOS broadcasted to Circle: " + (userCircle || "No Circle configured"));
+    window.triggerSos = () => alert("🚨 Emergency SOS dispatched to your Family Circle!");
 
-    // Safe Places Handlers
-    window.setGeofencePreset = (label, lat, lng) => {
-      currentGeofence = { name: label, lat: lat, lng: lng, radius: 250 };
-      hasLeftGeofence = false;
-      if (geofenceCircle) map.removeLayer(geofenceCircle);
-      geofenceCircle = L.circle([lat, lng], {
-        radius: 250,
-        color: '#32D74B',
-        fillColor: '#32D74B',
-        fillOpacity: 0.15,
-        weight: 2
-      }).addTo(map);
-      map.flyTo([lat, lng], 16);
-      alert(`🛡️ Safe Zone Armed: ${label} (250m departure alert active)`);
-    };
-
-    window.addCurrentLocationAsSafePlace = () => {
-      if (!lastPos) return alert("Waiting for GPS lock...");
-      const name = prompt("Name this safe location (e.g. Grandma's House, Work):");
-      if (name) window.setGeofencePreset(name, lastPos[0], lastPos[1]);
-    };
-
-    // Web Audio Lost Device Acoustic Chirp (Pro Feature)
-    window.ringDeviceAudio = () => {
-      if (!requirePro("Lost Device Acoustic Chirp")) return;
-      try {
-        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-        const osc = audioCtx.createOscillator();
-        const gain = audioCtx.createGain();
-        osc.type = "sine";
-        osc.frequency.setValueAtTime(880, audioCtx.currentTime);
-        osc.frequency.exponentialRampToValueAtTime(440, audioCtx.currentTime + 0.5);
-        gain.gain.setValueAtTime(0.8, audioCtx.currentTime);
-        gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 1.2);
-        osc.connect(gain);
-        gain.connect(audioCtx.destination);
-        osc.start();
-        osc.stop(audioCtx.currentTime + 1.2);
-        alert("🔊 Sound Chirp Broadcast: Loud tracking alarm emitted!");
-      } catch (e) {
-        alert("Acoustic Chirp triggered.");
-      }
-    };
-
-    // Strict Pro Verification Engine
+    // Pro Feature Verifier
     function requirePro(featureName) {
       if (!isProUnlocked) {
-        alert(`🔒 ${featureName} is reserved for Track365 Pro members. Upgrade for ₹49 to activate.`);
+        alert(`🔒 ${featureName} is reserved for Track365 Plus. Upgrade for ₹49 to activate.`);
         openModal('upgradeModal');
         return false;
       }
       return true;
     }
 
-    // UTR Manual Transaction Verification
+    window.ringDeviceAudio = () => {
+      if (!requirePro("Phone Finder Ring")) return;
+      playAlertChime('exit');
+      setTimeout(() => playAlertChime('enter'), 300);
+      alert("🔊 Sound Alert: Ring tone emitted!");
+    };
+
+    window.toggleBrakingShield = () => {
+      isBrakingShield = !isBrakingShield;
+      const b = document.getElementById('btnBraking');
+      b.classList.toggle('active-green', isBrakingShield);
+      alert(`Crash Shield ${isBrakingShield ? 'Enabled' : 'Disabled'}.`);
+    };
+
+    window.toggleTrace = () => {
+      isTrace = !isTrace;
+      const btn = document.getElementById('btnTrace');
+      btn.classList.toggle('active-green', isTrace);
+      if (isTrace) traceCoords = lastPos ? [lastPos] : [];
+      else if (tracePolyline) { map.removeLayer(tracePolyline); tracePolyline = null; }
+    };
+
+    window.toggleStealth = () => {
+      if (!requirePro("Private Mode")) return;
+      isGhost = !isGhost;
+      const btn = document.getElementById('btnStealth');
+      btn.classList.toggle('active-ghost', isGhost);
+      btn.innerHTML = isGhost ? "👻 Private Mode (On)" : "👻 Private Mode (Ghost) <span class='lock-badge'>PLUS</span>";
+      if (userMarker) userMarker.setIcon(L.divIcon({ className: '', html: getMarkerHTML(), iconSize: [30, 30] }));
+    };
+
+    window.toggleRadar = () => {
+      if (!requirePro("Live Area Radar")) return;
+      isRadar = !isRadar;
+      const btn = document.getElementById('btnRadar');
+      btn.classList.toggle('active-green', isRadar);
+      if (isRadar && lastPos) radarCircle = L.circleMarker(lastPos, { radius: 110, className: 'radar-sweep', stroke: false }).addTo(map);
+      else if (radarCircle) { map.removeLayer(radarCircle); radarCircle = null; }
+    };
+
+    // UTR Submission & Admin Unlock Portal
     window.submitUtrForVerification = () => {
       const utr = document.getElementById('utrVerificationInput').value.trim();
-      if (utr.length < 8) {
-        return alert("❌ Invalid Transaction: Enter a valid 8 to 12-digit UTR/UPI reference number.");
-      }
+      if (utr.length < 8) return alert("❌ Invalid: Enter a valid 8 to 12-digit UPI / UTR reference number.");
       push(ref(db, `upgrade_tickets`), {
         userId: userId || "guest",
         name: userName || "Anonymous",
         utr: utr,
         time: Date.now()
       });
-      alert(`🎉 Thank You! UTR ${utr} has been submitted to the admin database for activation verification.`);
+      alert(`🎉 Thank You! Reference ${utr} has been submitted for activation verification.`);
       closeModal('upgradeModal');
     };
 
-    window.toggleTrace = () => {
-      isTrace = !isTrace;
-      const btn = document.getElementById('btnTrace');
-      if (isTrace) {
-        btn.classList.add('active-green');
-        btn.innerText = "📈 Trace Route (On)";
-        traceCoords = lastPos ? [lastPos] : [];
+    window.authenticateAdmin = () => {
+      const pin = document.getElementById('adminPinInput').value.trim();
+      if (pin === "3650") {
+        isProUnlocked = true;
+        localStorage.setItem('t365_pro', 'true');
+        syncProUI();
+        document.getElementById('adminTicketZone').style.display = 'block';
+        alert("⚡ Admin Access Verified: Track365 Plus enabled on this device!");
       } else {
-        btn.classList.remove('active-green');
-        btn.innerText = "📈 Trace Route (Free)";
-        if (tracePolyline) { map.removeLayer(tracePolyline); tracePolyline = null; }
-      }
-    };
-
-    window.toggleStealth = () => {
-      if (!requirePro("Ghost Mode")) return;
-      isGhost = !isGhost;
-      const btn = document.getElementById('btnStealth');
-      if (isGhost) {
-        btn.classList.add('active-ghost');
-        btn.innerText = "👻 Ghost Mode (On)";
-      } else {
-        btn.classList.remove('active-ghost');
-        btn.innerText = "👻 Ghost Mode (Off)";
-      }
-      if (userMarker) userMarker.setIcon(L.divIcon({ className: '', html: getMarkerHTML(), iconSize: [30, 30] }));
-    };
-
-    window.toggleRadar = () => {
-      if (!requirePro("Hazard Radar")) return;
-      isRadar = !isRadar;
-      const btn = document.getElementById('btnRadar');
-      if (isRadar) {
-        btn.classList.add('active-green');
-        btn.innerText = "📡 Hazard Radar (On)";
-        if (lastPos) radarCircle = L.circleMarker(lastPos, { radius: 110, className: 'radar-sweep', stroke: false }).addTo(map);
-      } else {
-        btn.classList.remove('active-green');
-        btn.innerText = "📡 Hazard Radar (Off)";
-        if (radarCircle) { map.removeLayer(radarCircle); radarCircle = null; }
+        alert("❌ Access Denied: Incorrect Master PIN.");
       }
     };
 
@@ -1124,7 +1476,7 @@
     const UPIS = { pri: { v: "meerakushwaha4789@okaxis" }, dad: { v: "9936280244@upi" } };
     window.switchVpa = (t) => {
       const vpa = UPIS[t].v;
-      const url = `upi://pay?pa=${vpa}&pn=Track365%20Pro&am=49&cu=INR&tn=Track365ProUnlock`;
+      const url = `upi://pay?pa=${vpa}&pn=Track365%20Plus&am=49&cu=INR&tn=Track365PlusUnlock`;
       document.getElementById('vpaLabel').innerText = vpa;
       document.getElementById('qrUpi').src = `https://api.qrserver.com/v1/create-qr-code/?size=120x120&data=${encodeURIComponent(url)}`;
       document.getElementById('linkUpi').href = url;
