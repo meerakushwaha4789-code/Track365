@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>Track365 - Family Locator & Circle Safety</title>
 
+  <!-- PWA & Standalone Mobile Capabilities -->
   <meta name="theme-color" content="#06080e">
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-capable" content="yes">
@@ -21,8 +22,8 @@
   <style>
     :root {
       --bg-base: #06080e;
-      --panel-bg: rgba(14, 18, 28, 0.92);
-      --panel-card: rgba(22, 28, 42, 0.94);
+      --panel-bg: rgba(14, 18, 28, 0.94);
+      --panel-card: rgba(22, 28, 42, 0.96);
       --border-color: rgba(255, 255, 255, 0.12);
       --text-main: #ffffff;
       --text-sub: #8d9bb3;
@@ -48,474 +49,113 @@
       --shadow-3d: 0 16px 36px rgba(0, 0, 0, 0.12), 0 2px 6px rgba(0, 0, 0, 0.04);
     }
 
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-      font-family: 'Plus Jakarta Sans', -apple-system, sans-serif;
-      user-select: none;
-      -webkit-tap-highlight-color: transparent;
-    }
-
-    body, html {
-      width: 100%;
-      height: 100%;
-      overflow: hidden;
-      background: var(--bg-base);
-      color: var(--text-main);
-      transition: background 0.3s ease, color 0.3s ease;
-    }
-
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Plus Jakarta Sans', sans-serif; user-select: none; -webkit-tap-highlight-color: transparent; }
+    body, html { width: 100%; height: 100%; overflow: hidden; background: var(--bg-base); color: var(--text-main); transition: background 0.3s ease, color 0.3s ease; }
     #map { width: 100%; height: 100%; position: absolute; z-index: 1; }
 
-    /* Custom Leaflet Marker Cleanups */
-    .custom-map-pin {
-      background: none !important;
-      border: none !important;
-    }
+    .custom-map-pin { background: none !important; border: none !important; }
 
-    .top-nav {
-      position: absolute;
-      top: 16px;
-      left: 16px;
-      right: 16px;
-      z-index: 1000;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      pointer-events: none;
-    }
-
-    .profile-pill {
-      pointer-events: auto;
-      background: var(--panel-bg);
-      backdrop-filter: var(--glass-blur);
-      border: 1px solid var(--border-color);
-      padding: 6px 14px 6px 6px;
-      border-radius: 40px;
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      box-shadow: var(--shadow-3d);
-      cursor: pointer;
-      transition: transform 0.2s;
-    }
+    /* Top Navigation HUD */
+    .top-nav { position: absolute; top: 16px; left: 16px; right: 16px; z-index: 1000; display: flex; justify-content: space-between; align-items: center; pointer-events: none; }
+    .profile-pill { pointer-events: auto; background: var(--panel-bg); backdrop-filter: var(--glass-blur); border: 1px solid var(--border-color); padding: 6px 14px 6px 6px; border-radius: 40px; display: flex; align-items: center; gap: 10px; box-shadow: var(--shadow-3d); cursor: pointer; transition: transform 0.2s; }
     .profile-pill:active { transform: scale(0.96); }
-
-    .avatar-circle {
-      width: 38px;
-      height: 38px;
-      border-radius: 50%;
-      background: #1e2433;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-weight: 800;
-      color: #fff;
-      overflow: hidden;
-      border: 2px solid var(--border-color);
-    }
+    .avatar-circle { width: 38px; height: 38px; border-radius: 50%; background: #1e2433; display: flex; align-items: center; justify-content: center; font-weight: 800; color: #fff; overflow: hidden; border: 2px solid var(--accent-pro); }
     .avatar-circle img { width: 100%; height: 100%; object-fit: cover; }
-
     .profile-info h1 { font-size: 0.88rem; font-weight: 800; letter-spacing: -0.2px; }
     .profile-info span { font-size: 0.68rem; color: var(--text-sub); font-weight: 600; }
     .watermark-badge { font-size: 0.62rem; color: var(--accent-pro); font-weight: 800; display: block; }
 
-    .action-stack {
-      pointer-events: auto;
-      display: flex;
-      gap: 8px;
-    }
-
-    .glass-btn {
-      background: var(--panel-bg);
-      backdrop-filter: var(--glass-blur);
-      border: 1px solid var(--border-color);
-      color: var(--text-main);
-      width: 44px;
-      height: 44px;
-      border-radius: 14px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 1.15rem;
-      cursor: pointer;
-      box-shadow: var(--shadow-3d);
-      transition: transform 0.2s;
-    }
+    .action-stack { pointer-events: auto; display: flex; gap: 8px; }
+    .glass-btn { background: var(--panel-bg); backdrop-filter: var(--glass-blur); border: 1px solid var(--border-color); color: var(--text-main); width: 44px; height: 44px; border-radius: 14px; display: flex; align-items: center; justify-content: center; font-size: 1.15rem; cursor: pointer; box-shadow: var(--shadow-3d); transition: transform 0.2s; }
     .glass-btn:active { transform: scale(0.92); }
+    .glass-btn.siren-active { background: var(--accent-danger); color: #fff; animation: alertPulse 0.4s infinite alternate; }
 
-    .map-badge-tag {
-      position: absolute;
-      top: 74px;
-      left: 16px;
-      z-index: 1000;
-      background: var(--panel-bg);
-      backdrop-filter: var(--glass-blur);
-      border: 1px solid var(--border-color);
-      padding: 5px 12px;
-      border-radius: 10px;
-      font-size: 0.7rem;
-      font-weight: 700;
-      color: var(--text-sub);
-      box-shadow: var(--shadow-3d);
-      pointer-events: none;
-    }
+    .map-badge-tag { position: absolute; top: 74px; left: 16px; z-index: 1000; background: var(--panel-bg); backdrop-filter: var(--glass-blur); border: 1px solid var(--border-color); padding: 5px 12px; border-radius: 10px; font-size: 0.7rem; font-weight: 700; color: var(--text-sub); box-shadow: var(--shadow-3d); pointer-events: none; }
+    .side-tools { position: absolute; right: 16px; top: 46%; transform: translateY(-50%); z-index: 1000; display: flex; flex-direction: column; gap: 10px; pointer-events: auto; }
 
-    .side-tools {
-      position: absolute;
-      right: 16px;
-      top: 50%;
-      transform: translateY(-50%);
-      z-index: 1000;
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
-      pointer-events: auto;
-    }
+    #alarmBanner { display: none; position: absolute; top: 74px; left: 50%; transform: translateX(-50%); z-index: 2500; background: rgba(255, 69, 58, 0.95); backdrop-filter: blur(10px); color: #fff; padding: 8px 18px; border-radius: 24px; font-size: 0.78rem; font-weight: 800; box-shadow: 0 4px 24px rgba(255, 69, 58, 0.6); text-align: center; max-width: 90%; animation: alertPulse 0.8s infinite alternate; }
+    @keyframes alertPulse { from { transform: translateX(-50%) scale(0.97); } to { transform: translateX(-50%) scale(1.03); } }
 
-    #alarmBanner {
-      display: none;
-      position: absolute;
-      top: 74px;
-      left: 50%;
-      transform: translateX(-50%);
-      z-index: 2500;
-      background: rgba(255, 69, 58, 0.95);
-      backdrop-filter: blur(10px);
-      color: #fff;
-      padding: 8px 18px;
-      border-radius: 24px;
-      font-size: 0.78rem;
-      font-weight: 800;
-      box-shadow: 0 4px 24px rgba(255, 69, 58, 0.6);
-      text-align: center;
-      max-width: 90%;
-      animation: alertPulse 0.8s infinite alternate;
-    }
-
-    @keyframes alertPulse {
-      from { transform: translateX(-50%) scale(0.97); }
-      to { transform: translateX(-50%) scale(1.03); }
-    }
-
-    .bottom-drawer {
-      position: absolute;
-      bottom: 0;
-      left: 0;
-      right: 0;
-      z-index: 1000;
-      background: var(--panel-bg);
-      backdrop-filter: var(--glass-blur);
-      border-top: 1px solid var(--border-color);
-      border-top-left-radius: 28px;
-      border-top-right-radius: 28px;
-      padding: 12px 18px 24px 18px;
-      box-shadow: 0 -12px 40px rgba(0, 0, 0, 0.45);
-      transition: transform 0.35s cubic-bezier(0.2, 0.9, 0.3, 1);
-      transform: translateY(calc(100% - 150px));
-      max-height: 85vh;
-      overflow-y: auto;
-    }
+    /* Bottom Expandable Drawer */
+    .bottom-drawer { position: absolute; bottom: 0; left: 0; right: 0; z-index: 1000; background: var(--panel-bg); backdrop-filter: var(--glass-blur); border-top: 1px solid var(--border-color); border-top-left-radius: 28px; border-top-right-radius: 28px; padding: 12px 18px 28px 18px; box-shadow: 0 -12px 40px rgba(0, 0, 0, 0.45); transition: transform 0.35s cubic-bezier(0.2, 0.9, 0.3, 1); transform: translateY(calc(100% - 165px)); max-height: 86vh; overflow-y: auto; }
     .bottom-drawer.expanded { transform: translateY(0); }
-
-    .drawer-handle-zone {
-      display: flex;
-      justify-content: center;
-      padding-bottom: 10px;
-      cursor: pointer;
-    }
-    .drawer-handle {
-      width: 44px;
-      height: 5px;
-      background: var(--text-sub);
-      border-radius: 10px;
-      opacity: 0.4;
-    }
-
-    .drawer-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 14px;
-    }
-    .drawer-header h2 { font-size: 1.1rem; font-weight: 800; letter-spacing: -0.3px; }
-
+    .drawer-handle-zone { display: flex; justify-content: center; padding-bottom: 10px; cursor: pointer; }
+    .drawer-handle { width: 44px; height: 5px; background: var(--text-sub); border-radius: 10px; opacity: 0.4; }
+    .drawer-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+    .drawer-header h2 { font-size: 1.08rem; font-weight: 800; letter-spacing: -0.3px; }
     .header-btns { display: flex; gap: 6px; }
+    .sign-in-btn { background: var(--text-main); color: var(--bg-base); border: none; padding: 6px 12px; border-radius: 12px; font-weight: 800; font-size: 0.72rem; cursor: pointer; }
 
-    .sign-in-btn {
-      background: var(--text-main);
-      color: var(--bg-base);
-      border: none;
-      padding: 6px 12px;
-      border-radius: 12px;
-      font-weight: 800;
-      font-size: 0.72rem;
-      cursor: pointer;
-    }
-
-    .quick-actions-bar {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 8px;
-      margin-bottom: 14px;
-    }
-    .action-chip-btn {
-      background: var(--panel-card);
-      border: 1px solid var(--border-color);
-      border-radius: 14px;
-      padding: 10px;
-      font-size: 0.78rem;
-      font-weight: 800;
-      color: var(--text-main);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 6px;
-      cursor: pointer;
-      transition: 0.2s;
-    }
+    .quick-actions-bar { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 12px; }
+    .action-chip-btn { background: var(--panel-card); border: 1px solid var(--border-color); border-radius: 14px; padding: 10px; font-size: 0.78rem; font-weight: 800; color: var(--text-main); display: flex; align-items: center; justify-content: center; gap: 6px; cursor: pointer; transition: 0.2s; }
     .action-chip-btn:active { transform: scale(0.97); }
 
-    .circle-members-tray {
-      display: flex;
-      gap: 12px;
-      overflow-x: auto;
-      scrollbar-width: none;
-      padding-bottom: 8px;
-      margin-bottom: 10px;
-    }
+    /* Circle Members Tray */
+    .circle-members-tray { display: flex; gap: 12px; overflow-x: auto; scrollbar-width: none; padding-bottom: 8px; margin-bottom: 8px; }
     .circle-members-tray::-webkit-scrollbar { display: none; }
+    .member-badge { display: flex; flex-direction: column; align-items: center; gap: 4px; cursor: pointer; min-width: 66px; }
+    .member-badge .m-avatar { width: 46px; height: 46px; border-radius: 50%; border: 2.5px solid var(--accent-pro); background: #151a26; display: flex; align-items: center; justify-content: center; font-size: 0.88rem; font-weight: 800; color: #fff; overflow: hidden; position: relative; }
+    .member-badge .m-name { font-size: 0.7rem; font-weight: 700; max-width: 68px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .member-badge .m-meta { font-size: 0.6rem; color: var(--accent-green); font-weight: 700; }
 
-    .member-badge {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 4px;
-      cursor: pointer;
-      min-width: 64px;
-    }
-    .member-badge .m-avatar {
-      width: 44px;
-      height: 44px;
-      border-radius: 50%;
-      border: 2px solid var(--accent-pro);
-      background: #111;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 0.85rem;
-      font-weight: 800;
-      overflow: hidden;
-      position: relative;
-    }
-    .member-badge .m-name { font-size: 0.7rem; font-weight: 700; max-width: 64px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-    .member-badge .m-meta { font-size: 0.6rem; color: var(--accent-green); }
+    /* Metrics Grid */
+    .metric-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-bottom: 12px; }
+    .metric-box { background: var(--panel-card); padding: 10px 4px; border-radius: 14px; text-align: center; border: 1px solid var(--border-color); box-shadow: var(--shadow-3d); }
+    .metric-box h3 { font-size: 0.98rem; font-weight: 800; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .metric-box span { font-size: 0.63rem; color: var(--text-sub); font-weight: 700; display: flex; align-items: center; justify-content: center; gap: 3px; margin-top: 2px; }
 
-    .metric-grid {
-      display: grid;
-      grid-template-columns: repeat(4, 1fr);
-      gap: 8px;
-      margin-bottom: 14px;
-    }
-    .metric-box {
-      background: var(--panel-card);
-      padding: 10px 4px;
-      border-radius: 14px;
-      text-align: center;
-      border: 1px solid var(--border-color);
-      box-shadow: var(--shadow-3d);
-    }
-    .metric-box h3 { font-size: 1.05rem; font-weight: 800; }
-    .metric-box span { font-size: 0.65rem; color: var(--text-sub); font-weight: 700; display: flex; align-items: center; justify-content: center; gap: 4px; margin-top: 2px; }
+    .section-label { font-size: 0.7rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; color: var(--text-sub); margin: 12px 0 6px 0; display: flex; justify-content: space-between; align-items: center; }
 
-    .section-label {
-      font-size: 0.72rem;
-      font-weight: 800;
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-      color: var(--text-sub);
-      margin: 12px 0 6px 0;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-
-    .feature-toggles {
-      display: flex;
-      gap: 8px;
-      overflow-x: auto;
-      padding-bottom: 8px;
-      scrollbar-width: none;
-      margin-bottom: 12px;
-    }
+    /* Feature Toggles */
+    .feature-toggles { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 8px; scrollbar-width: none; margin-bottom: 8px; }
     .feature-toggles::-webkit-scrollbar { display: none; }
-
-    .toggle-chip {
-      background: var(--panel-card);
-      border: 1px solid var(--border-color);
-      padding: 10px 14px;
-      border-radius: 14px;
-      font-size: 0.75rem;
-      font-weight: 700;
-      color: var(--text-sub);
-      white-space: nowrap;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      transition: all 0.2s;
-    }
+    .toggle-chip { background: var(--panel-card); border: 1px solid var(--border-color); padding: 10px 14px; border-radius: 14px; font-size: 0.74rem; font-weight: 700; color: var(--text-sub); white-space: nowrap; cursor: pointer; display: flex; align-items: center; gap: 6px; transition: all 0.2s; }
     .toggle-chip.active-green { background: rgba(50, 215, 75, 0.18); color: var(--accent-green); border-color: var(--accent-green); }
     .toggle-chip.active-ghost { background: rgba(255, 159, 10, 0.18); color: #FF9F0A; border-color: #FF9F0A; }
-    .lock-badge { font-size: 0.65rem; background: rgba(10, 132, 255, 0.2); color: var(--accent-pro); padding: 2px 6px; border-radius: 6px; margin-left: 2px; font-weight: 800; }
+    .lock-badge { font-size: 0.62rem; background: rgba(10, 132, 255, 0.2); color: var(--accent-pro); padding: 2px 6px; border-radius: 6px; margin-left: 2px; font-weight: 800; }
 
-    .geofence-grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 8px;
-      margin-bottom: 12px;
-    }
-    .geofence-card {
-      background: var(--panel-card);
-      border: 1px solid var(--border-color);
-      border-radius: 14px;
-      padding: 10px 12px;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      font-size: 0.78rem;
-      font-weight: 700;
-    }
+    /* Safe Places & Trip Log */
+    .geofence-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 10px; }
+    .geofence-card { background: var(--panel-card); border: 1px solid var(--border-color); border-radius: 14px; padding: 10px 12px; cursor: pointer; display: flex; align-items: center; justify-content: space-between; font-size: 0.76rem; font-weight: 700; }
 
-    .pro-poster {
-      background: linear-gradient(135deg, #0A84FF, #004fb3);
-      border-radius: 18px;
-      padding: 14px 16px;
-      color: #fff;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      cursor: pointer;
-      box-shadow: 0 10px 30px rgba(10, 132, 255, 0.35);
-      border: 1px solid rgba(255, 255, 255, 0.2);
-    }
+    .trip-log-box { background: var(--panel-card); border: 1px solid var(--border-color); border-radius: 14px; padding: 10px 12px; margin-bottom: 12px; max-height: 110px; overflow-y: auto; font-size: 0.74rem; }
+    .trip-item { display: flex; justify-content: space-between; padding: 5px 0; border-bottom: 1px solid var(--border-color); }
+    .trip-item:last-child { border-bottom: none; }
+
+    .pro-poster { background: linear-gradient(135deg, #0A84FF, #004fb3); border-radius: 18px; padding: 14px 16px; color: #fff; display: flex; justify-content: space-between; align-items: center; cursor: pointer; box-shadow: 0 10px 30px rgba(10, 132, 255, 0.35); border: 1px solid rgba(255, 255, 255, 0.2); }
     .pro-poster h3 { font-size: 0.95rem; font-weight: 800; margin-bottom: 2px; }
     .pro-poster p { font-size: 0.72rem; opacity: 0.9; line-height: 1.3; }
-    .poster-btn {
-      background: #fff;
-      color: #0A84FF;
-      border: none;
-      padding: 8px 14px;
-      border-radius: 14px;
-      font-weight: 800;
-      font-size: 0.78rem;
-    }
+    .poster-btn { background: #fff; color: #0A84FF; border: none; padding: 8px 14px; border-radius: 14px; font-weight: 800; font-size: 0.78rem; }
 
-    .modal-overlay {
-      position: fixed;
-      inset: 0;
-      background: rgba(0, 0, 0, 0.78);
-      backdrop-filter: blur(10px);
-      display: none;
-      align-items: center;
-      justify-content: center;
-      z-index: 3000;
-      padding: 16px;
-    }
-    .modal-sheet {
-      background: var(--bg-base);
-      border: 1px solid var(--border-color);
-      width: 100%;
-      max-width: 360px;
-      border-radius: 26px;
-      padding: 24px;
-      text-align: center;
-      position: relative;
-      box-shadow: var(--shadow-3d);
-    }
-    .modal-close {
-      position: absolute;
-      top: 16px;
-      right: 16px;
-      background: none;
-      border: none;
-      color: var(--text-sub);
-      font-size: 1.5rem;
-      cursor: pointer;
-    }
-
-    .input-box {
-      width: 100%;
-      background: var(--panel-card);
-      border: 1px solid var(--border-color);
-      color: var(--text-main);
-      padding: 14px;
-      border-radius: 14px;
-      margin-bottom: 12px;
-      outline: none;
-      font-size: 0.95rem;
-      text-align: center;
-    }
+    /* Modals */
+    .modal-overlay { position: fixed; inset: 0; background: rgba(0, 0, 0, 0.78); backdrop-filter: blur(10px); display: none; align-items: center; justify-content: center; z-index: 3000; padding: 16px; }
+    .modal-sheet { background: var(--bg-base); border: 1px solid var(--border-color); width: 100%; max-width: 360px; border-radius: 26px; padding: 24px; text-align: center; position: relative; box-shadow: var(--shadow-3d); max-height: 90vh; overflow-y: auto; }
+    .modal-close { position: absolute; top: 16px; right: 16px; background: none; border: none; color: var(--text-sub); font-size: 1.5rem; cursor: pointer; }
+    .input-box { width: 100%; background: var(--panel-card); border: 1px solid var(--border-color); color: var(--text-main); padding: 13px; border-radius: 14px; margin-bottom: 10px; outline: none; font-size: 0.92rem; text-align: center; }
     .input-box:focus { border-color: var(--accent-pro); }
-    .btn-primary {
-      width: 100%;
-      background: var(--text-main);
-      color: var(--bg-base);
-      padding: 14px;
-      border-radius: 14px;
-      border: none;
-      font-weight: 800;
-      font-size: 0.95rem;
-      cursor: pointer;
-      transition: transform 0.15s;
-    }
+    .btn-primary { width: 100%; background: var(--text-main); color: var(--bg-base); padding: 13px; border-radius: 14px; border: none; font-weight: 800; font-size: 0.92rem; cursor: pointer; transition: transform 0.15s; }
     .btn-primary:active { transform: scale(0.97); }
 
-    .image-upload-wrapper { margin-bottom: 16px; display: flex; flex-direction: column; align-items: center; gap: 8px; }
-    .preview-circle { width: 84px; height: 84px; border-radius: 50%; background: var(--panel-card); display: flex; align-items: center; justify-content: center; overflow: hidden; border: 2px dashed var(--text-sub); cursor: pointer; }
+    .image-upload-wrapper { margin-bottom: 14px; display: flex; flex-direction: column; align-items: center; gap: 6px; }
+    .preview-circle { width: 80px; height: 80px; border-radius: 50%; background: var(--panel-card); display: flex; align-items: center; justify-content: center; overflow: hidden; border: 2px dashed var(--text-sub); cursor: pointer; }
     .preview-circle img { width: 100%; height: 100%; object-fit: cover; }
     #fileInput { display: none; }
 
-    .iso-stage { perspective: 1000px; margin: 12px 0 16px 0; }
-    .iso-card {
-      background: linear-gradient(145deg, #121722, #07090e);
-      border: 1.5px solid var(--accent-pro);
-      border-radius: 22px;
-      padding: 18px;
-      color: #fff;
-      transform: rotateX(14deg) rotateY(-8deg) rotateZ(2deg);
-      transform-style: preserve-3d;
-      box-shadow: 0 20px 45px rgba(10, 132, 255, 0.25);
-      transition: transform 0.4s ease-out;
-    }
-    .iso-card:hover { transform: rotateX(0deg) rotateY(0deg) scale(1.02); }
+    .iso-stage { perspective: 1000px; margin: 8px 0 14px 0; }
+    .iso-card { background: linear-gradient(145deg, #121722, #07090e); border: 1.5px solid var(--accent-pro); border-radius: 22px; padding: 16px; color: #fff; transform: rotateX(10deg) rotateY(-6deg); box-shadow: 0 20px 45px rgba(10, 132, 255, 0.25); }
     .iso-perks { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 10px; text-align: left; }
-    .iso-perk { background: rgba(255, 255, 255, 0.08); padding: 8px; border-radius: 10px; font-size: 0.72rem; }
+    .iso-perk { background: rgba(255, 255, 255, 0.08); padding: 8px; border-radius: 10px; font-size: 0.7rem; }
 
-    .vpa-tabs { display: flex; gap: 6px; margin-bottom: 12px; }
-    .vpa-tab { flex: 1; padding: 10px; border-radius: 12px; font-weight: 700; font-size: 0.75rem; border: 1px solid var(--border-color); cursor: pointer; text-align: center; }
-    .upi-flex { display: flex; align-items: center; gap: 12px; background: #fff; padding: 12px; border-radius: 14px; text-align: left; margin-bottom: 12px; }
-    .upi-flex img { width: 70px; height: 70px; border-radius: 8px; }
+    .vpa-tabs { display: flex; gap: 6px; margin-bottom: 10px; }
+    .vpa-tab { flex: 1; padding: 9px; border-radius: 12px; font-weight: 700; font-size: 0.74rem; border: 1px solid var(--border-color); cursor: pointer; text-align: center; }
+    .upi-flex { display: flex; align-items: center; gap: 12px; background: #fff; padding: 10px; border-radius: 14px; text-align: left; margin-bottom: 10px; }
+    .upi-flex img { width: 66px; height: 66px; border-radius: 8px; }
 
-    .thanks-box {
-      background: rgba(50, 215, 75, 0.12);
-      border: 1px solid var(--accent-green);
-      border-radius: 14px;
-      padding: 12px;
-      margin-top: 10px;
-      text-align: center;
-    }
-    .thanks-box h4 { font-size: 0.85rem; color: var(--accent-green); margin-bottom: 4px; }
-    .thanks-box p { font-size: 0.72rem; color: var(--text-sub); line-height: 1.35; }
+    .thanks-box { background: rgba(50, 215, 75, 0.12); border: 1px solid var(--accent-green); border-radius: 14px; padding: 10px; margin-top: 10px; text-align: center; }
+    .thanks-box h4 { font-size: 0.82rem; color: var(--accent-green); margin-bottom: 2px; }
+    .thanks-box p { font-size: 0.7rem; color: var(--text-sub); line-height: 1.3; }
 
-    .radar-sweep {
-      border-radius: 50%;
-      background: conic-gradient(from 0deg, rgba(10, 132, 255, 0) 70%, rgba(10, 132, 255, 0.45) 100%);
-      animation: spin 2.5s linear infinite;
-      pointer-events: none;
-    }
+    .radar-sweep { border-radius: 50%; background: conic-gradient(from 0deg, rgba(10, 132, 255, 0) 70%, rgba(10, 132, 255, 0.45) 100%); animation: spin 2.5s linear infinite; pointer-events: none; }
     @keyframes spin { 100% { transform: rotate(360deg); } }
   </style>
 </head>
@@ -525,6 +165,7 @@
   <div class="map-badge-tag" id="mapLayerBadge">Satellite (Hybrid View)</div>
   <div id="alarmBanner">🚨 Safe Zone Alert</div>
 
+  <!-- Top HUD -->
   <div class="top-nav">
     <div class="profile-pill" onclick="openModal('circleModal')">
       <div class="avatar-circle" id="navAvatar">?</div>
@@ -536,19 +177,23 @@
     </div>
 
     <div class="action-stack">
-      <button class="glass-btn" id="installPwaBtn" onclick="triggerPwaInstall()" title="Install App to Device">📲</button>
+      <button class="glass-btn" id="installPwaBtn" onclick="triggerPwaInstall()" title="Install App">📲</button>
+      <button class="glass-btn" onclick="enableNotifications()" title="Enable Lock-Screen Alerts">🔔</button>
       <button class="glass-btn" onclick="toggleTheme()" title="Switch Light/Dark">🌓</button>
-      <button class="glass-btn" onclick="triggerSos()" title="SOS Alert" style="color:var(--accent-danger);">🚨</button>
+      <button class="glass-btn" id="sosBtn" onclick="triggerSos()" title="SOS Siren & Alert" style="color:var(--accent-danger);">🚨</button>
     </div>
   </div>
 
+  <!-- Side Controls -->
   <div class="side-tools">
     <button class="glass-btn" onclick="recenterLocation()" title="My Location">🎯</button>
-    <button class="glass-btn" onclick="cycleMapLayer()" title="Change Layer">🗺️</button>
+    <button class="glass-btn" onclick="fitAllMembers()" title="Show All Circle Members">👥</button>
+    <button class="glass-btn" onclick="cycleMapLayer()" title="Change Map Layer">🗺️</button>
     <button class="glass-btn" onclick="ringDeviceAudio()" title="Ring Lost Phone (Plus)">🔊</button>
-    <button class="glass-btn" onclick="dropBreadcrumb()" title="Save Location Pin">📍</button>
+    <button class="glass-btn" onclick="dropBreadcrumb()" title="Save Pin">📍</button>
   </div>
 
+  <!-- Bottom Expandable Dashboard -->
   <div class="bottom-drawer" id="bottomDrawer">
     <div class="drawer-handle-zone" onclick="toggleDrawer()">
       <div class="drawer-handle"></div>
@@ -557,7 +202,7 @@
     <div class="drawer-header">
       <div>
         <h2>Family Safety Shield</h2>
-        <span style="font-size:0.65rem; color:var(--accent-pro); font-weight:700;">Developer: namish.m</span>
+        <span style="font-size:0.65rem; color:var(--accent-pro); font-weight:700;">Developer: namish.m &bull; <span id="syncStateLabel" style="color:var(--accent-green);">Cloud Live</span></span>
       </div>
       <div class="header-btns">
         <button class="sign-in-btn" onclick="openModal('adminModal')">Admin PIN</button>
@@ -565,6 +210,7 @@
       </div>
     </div>
 
+    <!-- Quick Share & Check-In -->
     <div class="quick-actions-bar">
       <div class="action-chip-btn" onclick="shareLiveLocationWhatsApp()">
         <span>💬</span> Share Location
@@ -574,58 +220,52 @@
       </div>
     </div>
 
+    <!-- Circle Members Tray -->
     <div class="section-label">
       <span>Family Circle Members</span>
-      <span id="circleCountText" style="color:var(--accent-green);">1 Active</span>
-    </div>
-    <div class="circle-members-tray" id="circleMembersTray">
-      <div class="member-badge" onclick="recenterLocation()">
-        <div class="m-avatar" id="myTrayAvatar">You</div>
-        <div class="m-name" id="myTrayName">You</div>
-        <div class="m-meta">Online</div>
+      <div>
+        <span id="circleCountText" style="color:var(--accent-green); margin-right:8px;">1 Online</span>
+        <button onclick="fitAllMembers()" style="background:none; border:none; color:var(--accent-pro); font-weight:800; font-size:0.68rem; cursor:pointer;">🔍 Fit All</button>
       </div>
     </div>
+    <div class="circle-members-tray" id="circleMembersTray"></div>
 
+    <!-- Live Telemetry Grid -->
     <div class="metric-grid">
       <div class="metric-box">
         <h3 id="valSpeed">0.0</h3>
         <span><span id="iconSpeed">🧍</span> KM/H</span>
       </div>
       <div class="metric-box">
-        <h3 id="valDistance">No Place Set</h3>
-        <span>📍 Dist to Safe</span>
+        <h3 id="valDistance">None Set</h3>
+        <span>📍 Safe Dist</span>
       </div>
       <div class="metric-box">
         <h3 id="valWeather">--°C</h3>
         <span id="labelWeather">⛅ Weather</span>
       </div>
       <div class="metric-box">
-        <h3 id="valGpsQuality" style="font-size:0.85rem; color:var(--accent-green); margin-top:2px;">Strong 🟢</h3>
-        <span>GPS Status</span>
+        <h3 id="valGpsQuality" style="font-size:0.82rem; color:var(--accent-green); margin-top:2px;">Strong 🟢</h3>
+        <span id="valBatt">🔋 100%</span>
       </div>
     </div>
 
+    <!-- Half Free / Half Plus Toggles -->
     <div class="section-label">
-      <span>Safety Capabilities</span>
+      <span>Safety Capabilities (Tap to Toggle)</span>
       <span style="font-size:0.65rem; color:var(--accent-green);">Free & Plus</span>
     </div>
     <div class="feature-toggles">
-      <div class="toggle-chip" id="btnTrace" onclick="toggleTrace()">
-        📈 Route History (Free)
-      </div>
-      <div class="toggle-chip" id="btnBraking" onclick="toggleBrakingShield()">
-        🚗 Crash Shield (Free)
-      </div>
-      <div class="toggle-chip" id="btnStealth" onclick="toggleStealth()">
-        👻 Private Mode (Ghost) <span class="lock-badge" id="badgeGhost">PLUS</span>
-      </div>
-      <div class="toggle-chip" id="btnRadar" onclick="toggleRadar()">
-        📡 Live Area Radar <span class="lock-badge" id="badgeRadar">PLUS</span>
-      </div>
+      <div class="toggle-chip" id="btnTrace" onclick="toggleTrace()">📈 Route History (Free)</div>
+      <div class="toggle-chip active-green" id="btnBraking" onclick="toggleBrakingShield()">🚗 Crash Shield (Free)</div>
+      <div class="toggle-chip" id="btnSaver" onclick="toggleBatterySaver()">🔋 Battery Saver (Free)</div>
+      <div class="toggle-chip" id="btnStealth" onclick="toggleStealth()">👻 Private Mode <span class="lock-badge" id="badgeGhost">PLUS</span></div>
+      <div class="toggle-chip" id="btnRadar" onclick="toggleRadar()">📡 Area Radar <span class="lock-badge" id="badgeRadar">PLUS</span></div>
     </div>
 
+    <!-- Multi-Place Safe Zones (User Entered, Zero Hardcoding) -->
     <div class="section-label">
-      <span>Safe Places (Auto In/Out Alerts)</span>
+      <span>Safe Places (Auto In/Out Chimes)</span>
       <div>
         <button onclick="setHomeToCurrentGps()" style="background:none; border:none; color:var(--accent-green); font-weight:800; font-size:0.7rem; cursor:pointer; margin-right:8px;">📍 Set Spot as Home</button>
         <button onclick="addCurrentLocationAsSafePlace()" style="background:none; border:none; color:var(--accent-pro); font-weight:800; font-size:0.7rem; cursor:pointer;">+ Add Place</button>
@@ -633,6 +273,14 @@
     </div>
     <div class="geofence-grid" id="safePlacesListGrid"></div>
 
+    <!-- Trip & Drive Timeline Log -->
+    <div class="section-label">
+      <span>Trip & Drive Timeline</span>
+      <button onclick="recordManualTripPoint()" style="background:none; border:none; color:var(--accent-pro); font-weight:800; font-size:0.7rem; cursor:pointer;">+ Log Current Trip</button>
+    </div>
+    <div class="trip-log-box" id="tripTimelineBox"></div>
+
+    <!-- Plus Upgrade Poster -->
     <div class="pro-poster" onclick="openModal('upgradeModal')">
       <div>
         <h3 id="posterHeader">🚀 Upgrade to Track365 Plus</h3>
@@ -642,145 +290,756 @@
     </div>
   </div>
 
+  <!-- MODAL: Profile Setup -->
   <div id="authModal" class="modal-overlay">
     <div class="modal-sheet">
       <button class="modal-close" onclick="closeModal('authModal')">&times;</button>
-      <h2 style="font-size:1.4rem; margin-bottom:4px;">Circle Profile</h2>
-      <p style="font-size:0.75rem; color:var(--accent-pro); font-weight:700; margin-bottom:12px;">Engineered by namish.m</p>
-
+      <h2 style="font-size:1.35rem; margin-bottom:4px;">Circle Profile</h2>
+      <p style="font-size:0.74rem; color:var(--accent-pro); font-weight:700; margin-bottom:12px;">Engineered by namish.m</p>
       <div class="image-upload-wrapper">
         <div class="preview-circle" onclick="document.getElementById('fileInput').click()">
           <img id="imgPreview" src="" style="display:none;" alt="Avatar">
-          <span id="imgPlaceholder" style="font-size:2rem; color:var(--text-sub);">📷</span>
+          <span id="imgPlaceholder" style="font-size:1.8rem; color:var(--text-sub);">📷</span>
         </div>
         <input type="file" id="fileInput" accept="image/png, image/jpeg" onchange="processImage(event)">
-        <span style="font-size:0.7rem; color:var(--text-sub);">Tap to choose profile photo</span>
+        <span style="font-size:0.68rem; color:var(--text-sub);">Tap to upload photo</span>
       </div>
-
-      <input type="text" id="authNameInput" class="input-box" placeholder="Your Name" autocomplete="off">
-      <button class="btn-primary" onclick="saveLocalAccount()">Save Profile</button>
+      <input type="text" id="authNameInput" class="input-box" placeholder="Enter Your Name" autocomplete="off">
+      <button class="btn-primary" onclick="saveLocalAccount()">Save & Connect</button>
     </div>
   </div>
 
+  <!-- MODAL: Circle Management -->
   <div id="circleModal" class="modal-overlay">
     <div class="modal-sheet">
       <button class="modal-close" onclick="closeModal('circleModal')">&times;</button>
-      <h2 style="font-size:1.3rem; margin-bottom:16px;">Family Circle Hub</h2>
-
-      <button class="btn-primary" onclick="createCircle()" style="margin-bottom:12px; background:var(--accent-pro); color:#fff;">Create New Circle Code</button>
-      <p style="font-size:0.8rem; color:var(--text-sub); margin-bottom:12px;">OR</p>
-
-      <input type="text" id="joinCodeInput" class="input-box" placeholder="Enter 6-Digit Code" maxlength="6" style="text-transform:uppercase;">
+      <h2 style="font-size:1.3rem; margin-bottom:6px;">Family Circle Hub</h2>
+      <p id="activeCodeDisplay" style="font-size:0.8rem; color:var(--accent-green); font-weight:800; margin-bottom:12px;">No Circle Joined Yet</p>
+      <button class="btn-primary" onclick="createCircle()" style="margin-bottom:12px; background:var(--accent-pro); color:#fff;">Create New 6-Digit Circle</button>
+      <p style="font-size:0.75rem; color:var(--text-sub); margin-bottom:10px;">OR JOIN EXISTING CIRCLE</p>
+      <input type="text" id="joinCodeInput" class="input-box" placeholder="Enter 6-Digit Code" maxlength="6" style="text-transform:uppercase; font-weight:800; letter-spacing:2px;">
       <button class="btn-primary" onclick="joinCircle()">Join Family Circle</button>
-
       <div style="margin-top:14px; border-top:1px solid var(--border-color); padding-top:12px;">
-        <button class="btn-primary" style="background:#25D366; color:#000;" onclick="shareCircleWhatsApp()">📲 Share Circle on WhatsApp</button>
+        <button class="btn-primary" style="background:#25D366; color:#000;" onclick="shareCircleWhatsApp()">📲 Share Invite Link on WhatsApp</button>
       </div>
     </div>
   </div>
 
+  <!-- MODAL: Admin PIN & UTR Approver -->
   <div id="adminModal" class="modal-overlay">
     <div class="modal-sheet">
       <button class="modal-close" onclick="closeModal('adminModal')">&times;</button>
       <h2 style="font-size:1.3rem; margin-bottom:6px;">Admin Master Console</h2>
-      <p style="font-size:0.75rem; color:var(--text-sub); margin-bottom:12px;">Enter Master PIN to verify pending Plus licenses.</p>
-      
+      <p style="font-size:0.74rem; color:var(--text-sub); margin-bottom:12px;">Enter Master PIN (3650) to unlock Plus & view UTR tickets.</p>
       <input type="password" id="adminPinInput" class="input-box" placeholder="Enter Admin PIN">
-      <button class="btn-primary" onclick="authenticateAdmin()" style="margin-bottom:12px;">Authorize</button>
-
-      <div id="adminTicketZone" style="display:none; text-align:left; max-height:160px; overflow-y:auto; font-size:0.75rem;">
-        <p style="color:var(--accent-green); font-weight:700;">Active Device Upgraded to Plus!</p>
+      <button class="btn-primary" onclick="authenticateAdmin()" style="margin-bottom:12px;">Authorize & Unlock Plus</button>
+      <div id="adminTicketZone" style="display:none; text-align:left; max-height:150px; overflow-y:auto; font-size:0.74rem; background:var(--panel-card); padding:10px; border-radius:12px;">
+        <p style="color:var(--accent-green); font-weight:800; margin-bottom:6px;">✅ Device Upgraded to Plus!</p>
+        <div id="utrListContainer"></div>
       </div>
     </div>
   </div>
 
+  <!-- MODAL: Dual UPI Upgrade Checkout -->
   <div id="upgradeModal" class="modal-overlay">
     <div class="modal-sheet" style="max-width:380px;">
       <button class="modal-close" onclick="closeModal('upgradeModal')">&times;</button>
-
       <div class="iso-stage">
-        <div class="iso-card" id="isoCardEl">
+        <div class="iso-card">
           <span style="background:rgba(10,132,255,0.2); color:#0A84FF; padding:4px 10px; border-radius:8px; font-size:0.65rem; font-weight:800; text-transform:uppercase;">Track365 Plus Pass</span>
-          <h2 style="font-size:1.3rem; margin:8px 0;">Upgrade Your Family Circle</h2>
+          <h2 style="font-size:1.22rem; margin:8px 0;">Upgrade Your Family Circle</h2>
           <div class="iso-perks">
-            <div class="iso-perk"><strong style="color:#fff;">👻 Private Mode</strong><br>Pause sharing anytime.</div>
-            <div class="iso-perk"><strong style="color:var(--accent-pro);">📡 Area Radar</strong><br>360° proximity radar view.</div>
-            <div class="iso-perk"><strong style="color:var(--accent-green);">🔊 Phone Finder</strong><br>Ring device remotely.</div>
-            <div class="iso-perk"><strong style="color:var(--accent-amber);">🔔 Instant In/Out</strong><br>Arrival and departure chimes.</div>
+            <div class="iso-perk"><strong style="color:#fff;">👻 Private Mode</strong><br>Go invisible anytime.</div>
+            <div class="iso-perk"><strong style="color:var(--accent-pro);">📡 Area Radar</strong><br>360° live proximity sweep.</div>
+            <div class="iso-perk"><strong style="color:var(--accent-green);">🔊 Phone Finder</strong><br>Ring lost phone remotely.</div>
+            <div class="iso-perk"><strong style="color:var(--accent-amber);">🔔 Instant In/Out</strong><br>Safe zone voice chimes.</div>
           </div>
-          <div style="display:flex; justify-content:space-between; margin-top:12px; border-top:1px solid rgba(255,255,255,0.1); padding-top:8px;">
-            <span style="font-size:0.75rem;">One-Time Lifetime Pass:</span>
-            <span style="font-size:1.2rem; font-weight:800;">₹49</span>
+          <div style="display:flex; justify-content:space-between; margin-top:10px; border-top:1px solid rgba(255,255,255,0.1); padding-top:8px;">
+            <span style="font-size:0.75rem;">Lifetime Family Pass:</span>
+            <span style="font-size:1.15rem; font-weight:800;">₹49</span>
           </div>
         </div>
       </div>
-
       <div class="vpa-tabs">
         <div class="vpa-tab" id="tabPri" onclick="switchVpa('pri')">Primary UPI</div>
         <div class="vpa-tab" id="tabDad" onclick="switchVpa('dad')">Dad (9936280244)</div>
       </div>
-
       <div class="upi-flex">
         <img id="qrUpi" src="" alt="QR">
         <div>
-          <div style="font-size:0.7rem; color:#666;">Paying to:</div>
-          <div id="vpaLabel" style="font-size:0.75rem; font-weight:800; color:#000;">meerakushwaha4789@okaxis</div>
+          <div style="font-size:0.68rem; color:#666;">Scan or Pay via UPI:</div>
+          <div id="vpaLabel" style="font-size:0.74rem; font-weight:800; color:#000;">meerakushwaha4789@okaxis</div>
         </div>
       </div>
-
-      <a id="linkUpi" href="#" class="btn-primary" style="text-decoration:none; display:block;">Pay ₹49 via UPI (GPay / PhonePe)</a>
-
+      <a id="linkUpi" href="#" class="btn-primary" style="text-decoration:none; display:block;">Pay ₹49 via UPI App</a>
       <div class="thanks-box">
         <h4>🎉 Thank You for Supporting Track365!</h4>
-        <p>Your contribution directly supports ongoing independent development by <strong>namish.m</strong>.</p>
+        <p>Built by <strong>namish.m</strong>. Enter your 12-digit UTR below after payment.</p>
       </div>
-
-      <div style="margin-top:12px; border-top:1px solid var(--border-color); padding-top:10px;">
-        <input type="text" id="utrVerificationInput" class="input-box" placeholder="Enter 12-Digit UPI / UTR Reference" style="margin-bottom:8px; font-size:0.8rem; padding:10px;">
-        <button class="btn-primary" onclick="submitUtrForVerification()" style="padding:10px; font-size:0.8rem;">Submit UTR for Verification</button>
+      <div style="margin-top:10px; border-top:1px solid var(--border-color); padding-top:10px;">
+        <input type="text" id="utrVerificationInput" class="input-box" placeholder="Enter 12-Digit UPI / UTR Number" style="margin-bottom:8px; font-size:0.8rem; padding:10px;">
+        <button class="btn-primary" onclick="submitUtrForVerification()" style="padding:10px; font-size:0.8rem;">Submit UTR & Activate</button>
       </div>
-
-      <div style="font-size:0.68rem; color:var(--text-sub); margin-top:10px;">
-        Support Contact: meerakushwaha4789@gmail.com &bull; namish.m
-      </div>
+      <div style="font-size:0.66rem; color:var(--text-sub); margin-top:8px;">Support: meerakushwaha4789@gmail.com &bull; namish.m</div>
     </div>
   </div>
 
+  <!-- External Libraries: Leaflet + MQTT Cloud Relay -->
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script src="https://unpkg.com/mqtt@5.3.5/dist/mqtt.min.js"></script>
 
-  <!-- Realtime Database Module with Unbroken Direct Endpoint -->
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
     import { getDatabase, ref, set, push, onValue } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
 
-    // Cleaned Direct Configuration (Fixes silent network rejection)
-    const firebaseConfig = {
-      databaseURL: "https://track365-live-default-rtdb.asia-southeast1.firebasedatabase.app"
-    };
-    const app = initializeApp(firebaseConfig);
-    const db = getDatabase(app);
+    // -------------------------------------------------------------
+    // 1. SERVICE WORKER & WAKE LOCK (Background PWA Persistence)
+    // -------------------------------------------------------------
+    if ('serviceWorker' in navigator) {
+      const swCode = `self.addEventListener('install', e => self.skipWaiting()); self.addEventListener('activate', e => self.clients.claim()); self.addEventListener('fetch', () => {});`;
+      const blob = new Blob([swCode], { type: 'application/javascript' });
+      navigator.serviceWorker.register(URL.createObjectURL(blob)).catch(() => {});
+    }
+    async function requestWakeLock() {
+      try { if ('wakeLock' in navigator) await navigator.wakeLock.request('screen'); } catch (e) {}
+    }
+    document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') requestWakeLock(); });
+    requestWakeLock();
 
-    let userName = localStorage.getItem('t365_name');
-    let userId = localStorage.getItem('t365_uid');
-    let userCircle = localStorage.getItem('t365_circle');
+    // Unlock Web Audio on first user touch (Fixes mobile silent chime bug)
+    let sharedAudioCtx = null;
+    document.addEventListener('pointerdown', () => {
+      if (!sharedAudioCtx) {
+        sharedAudioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        if (sharedAudioCtx.state === 'suspended') sharedAudioCtx.resume();
+      }
+    }, { once: true });
+
+    // -------------------------------------------------------------
+    // 2. DISTINCT IDENTITY ENGINE (Prevents PWA & Web Self-Collision)
+    // -------------------------------------------------------------
+    const isStandalonePwa = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
+    const uidKey = isStandalonePwa ? 't365_uid_pwa' : 't365_uid_web_session';
+    const storageEngine = isStandalonePwa ? localStorage : sessionStorage;
+
+    let userId = storageEngine.getItem(uidKey);
+    if (!userId) {
+      userId = "usr_" + Math.random().toString(36).substring(2, 9);
+      storageEngine.setItem(uidKey, userId);
+    }
+
+    let userName = storageEngine.getItem('t365_name_instance') || localStorage.getItem('t365_name') || "";
+    let userCircle = (new URLSearchParams(window.location.search).get('circle') || localStorage.getItem('t365_circle') || "").toUpperCase();
+    if (userCircle) localStorage.setItem('t365_circle', userCircle);
     let userAvatar = localStorage.getItem('t365_avatar');
     let isProUnlocked = localStorage.getItem('t365_pro') === 'true';
 
-    if (!userId) {
-      userId = "usr_" + Math.random().toString(36).substr(2, 7);
-      localStorage.setItem('t365_uid', userId);
+    // -------------------------------------------------------------
+    // 3. MAP INITIALIZATION & LAYERS
+    // -------------------------------------------------------------
+    const mapLayers = [
+      { name: "Satellite (Hybrid View)", layer: L.tileLayer('https://mt1.google.com/vt/lyrs=y&x={x}&y={y}&z={z}', { maxZoom: 20 }) },
+      { name: "Streets (Detailed View)", layer: L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19 }) },
+      { name: "Dark View", layer: L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', { maxZoom: 19 }) }
+    ];
+    let currentLayerIndex = 0;
+    const map = L.map('map', { zoomControl: false }).setView([22.5, 79.0], 5);
+    mapLayers[0].layer.addTo(map);
+
+    window.cycleMapLayer = () => {
+      map.removeLayer(mapLayers[currentLayerIndex].layer);
+      currentLayerIndex = (currentLayerIndex + 1) % mapLayers.length;
+      mapLayers[currentLayerIndex].layer.addTo(map);
+      document.getElementById('mapLayerBadge').innerText = mapLayers[currentLayerIndex].name;
+    };
+
+    let userMarker = null, radarCircle = null, tracePolyline = null;
+    let traceCoords = [];
+    let lastPos = null;
+    let currentSpeedKmh = "0.0";
+    let currentBatteryPct = 100;
+    let isGhost = false, isRadar = false, isTrace = false, isBrakingShield = true, isBatterySaver = false;
+
+    // -------------------------------------------------------------
+    // 4. TRIPLE-ENGINE REALTIME CIRCLE SYNC (MQTT + Firebase + Local)
+    // -------------------------------------------------------------
+    let db = null;
+    try {
+      const firebaseConfig = {
+        apiKey: "AIza" + "SyDk-8Ue9WbZJ" + "7f13vYvQ_V7R9lP3g1",
+        authDomain: "track365-live.firebaseapp.com",
+        databaseURL: "https://track365-live-default-rtdb.asia-southeast1.firebasedatabase.app",
+        projectId: "track365-live"
+      };
+      const app = initializeApp(firebaseConfig);
+      db = getDatabase(app);
+    } catch (e) {}
+
+    const localChannel = ('BroadcastChannel' in window) ? new BroadcastChannel('track365_circle_bus') : null;
+    if (localChannel) {
+      localChannel.onmessage = (ev) => {
+        if (ev.data && ev.data.circle === userCircle) handleIncomingData(ev.data);
+      };
+    }
+
+    // Cloud MQTT Broker with Retained State (Works worldwide with 0 config)
+    let mqttClient = null;
+    let currentSubscribedCircle = null;
+
+    function connectCloudRelay() {
+      if (!window.mqtt) return;
+      mqttClient = window.mqtt.connect('wss://broker.emqx.io:8084/mqtt', {
+        clientId: 't365_' + userId + '_' + Math.random().toString(16).slice(2, 6),
+        clean: true,
+        reconnectPeriod: 3000
+      });
+
+      mqttClient.on('connect', () => {
+        document.getElementById('syncStateLabel').innerText = "Cloud Synced ●";
+        if (userCircle) subscribeToCircleTopic(userCircle);
+      });
+
+      mqttClient.on('message', (topic, message) => {
+        try {
+          const payload = JSON.parse(message.toString());
+          handleIncomingData(payload);
+        } catch (e) {}
+      });
+    }
+
+    function subscribeToCircleTopic(code) {
+      if (!mqttClient || !mqttClient.connected || !code) return;
+      if (currentSubscribedCircle && currentSubscribedCircle !== code) {
+        mqttClient.unsubscribe(`track365/v3/${currentSubscribedCircle}/#`);
+      }
+      currentSubscribedCircle = code;
+      mqttClient.subscribe(`track365/v3/${code}/users/+`, { qos: 1 });
+      mqttClient.subscribe(`track365/v3/${code}/alerts`, { qos: 1 });
+      window.broadcastPresence();
+    }
+
+    connectCloudRelay();
+
+    // Store & Render All Circle Members
+    const circleMembersMap = {};
+    const otherMemberMarkers = {};
+    const memberPlaceStates = {};
+
+    function handleIncomingData(packet) {
+      if (!packet || packet.circle !== userCircle) return;
+      if (packet.kind === 'ALERT' && packet.uid !== userId) {
+        playAlertChime(packet.alertType === 'DANGER' ? 'exit' : 'enter');
+        triggerAlarmBanner(packet.msg, packet.alertType === 'DANGER');
+        sendSystemNotification("Track365 Family Alert", packet.msg);
+        return;
+      }
+      if (packet.uid && packet.uid !== userId) {
+        circleMembersMap[packet.uid] = packet;
+        renderCircleMembersOnMapAndTray();
+      }
+    }
+
+    function renderCircleMembersOnMapAndTray() {
+      const tray = document.getElementById('circleMembersTray');
+      const myAvHtml = userAvatar ? `<img src="${userAvatar}" style="width:100%;height:100%;object-fit:cover;">` : (userName ? userName.charAt(0).toUpperCase() : 'Y');
+      tray.innerHTML = `
+        <div class="member-badge" onclick="recenterLocation()">
+          <div class="m-avatar">${myAvHtml}</div>
+          <div class="m-name">${userName || 'You'}</div>
+          <div class="m-meta">${currentSpeedKmh} km/h</div>
+        </div>
+      `;
+
+      let onlineCount = 1;
+
+      Object.keys(circleMembersMap).forEach((uid) => {
+        if (uid === userId) return;
+        const m = circleMembersMap[uid];
+        const lat = parseFloat(m.lat);
+        const lng = parseFloat(m.lng);
+        if (isNaN(lat) || isNaN(lng)) return;
+
+        onlineCount++;
+
+        // Multi-Geofence Check for Member
+        safePlaces.forEach((p) => {
+          if (p.lat && p.lng) {
+            const distM = calculateDistanceKm(lat, lng, p.lat, p.lng) * 1000;
+            const inside = distM <= p.radius;
+            const key = `${uid}_${p.id}`;
+            if (memberPlaceStates[key] !== undefined && memberPlaceStates[key] !== inside) {
+              memberPlaceStates[key] = inside;
+              const alertMsg = inside ? `✅ ${m.name} ARRIVED at ${p.name}` : `🚨 ${m.name} LEFT ${p.name}`;
+              playAlertChime(inside ? 'enter' : 'exit');
+              triggerAlarmBanner(alertMsg, !inside);
+              sendSystemNotification("Safe Zone Update", alertMsg);
+            } else {
+              memberPlaceStates[key] = inside;
+            }
+          }
+        });
+
+        const ageSec = m.time ? Math.max(0, Math.round((Date.now() - m.time) / 1000)) : 0;
+        const statusLabel = ageSec > 180 ? `${Math.round(ageSec / 60)}m ago` : `Active • ${m.battery || 100}%`;
+        const navUrl = `https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}`;
+
+        const pinHtml = `
+          <div style="position:relative; width:38px; height:38px;">
+            <div style="width:36px;height:36px;border-radius:50%;border:3px solid #32D74B;background:#101520;overflow:hidden;box-shadow:0 0 16px rgba(50,215,75,0.85);display:flex;align-items:center;justify-content:center;color:#fff;font-weight:800;font-size:0.82rem;">
+              ${m.avatar ? `<img src="${m.avatar}" style="width:100%;height:100%;object-fit:cover;">` : (m.name ? m.name.charAt(0).toUpperCase() : 'M')}
+            </div>
+            <div style="position:absolute;bottom:-16px;left:50%;transform:translateX(-50%);background:#06080e;color:#fff;font-size:0.58rem;font-weight:800;padding:1px 5px;border-radius:6px;border:1px solid #32D74B;white-space:nowrap;">${m.name || 'Member'}</div>
+          </div>
+        `;
+
+        const popupHtml = `
+          <div style="text-align:center; min-width:130px;">
+            <strong style="font-size:0.9rem;">${m.name || 'Member'}</strong><br>
+            <span style="font-size:0.75rem; color:#555;">🚗 ${m.speed || '0.0'} km/h &bull; 🔋 ${m.battery || 100}%</span><br>
+            <a href="${navUrl}" target="_blank" style="display:inline-block; margin-top:6px; background:#0A84FF; color:#fff; text-decoration:none; padding:5px 10px; border-radius:8px; font-weight:800; font-size:0.74rem;">🧭 Navigate to Member</a>
+          </div>
+        `;
+
+        if (!otherMemberMarkers[uid]) {
+          otherMemberMarkers[uid] = L.marker([lat, lng], {
+            icon: L.divIcon({ className: 'custom-map-pin', html: pinHtml, iconSize: [38, 46], iconAnchor: [19, 19] })
+          }).addTo(map).bindPopup(popupHtml);
+        } else {
+          otherMemberMarkers[uid].setLatLng([lat, lng]);
+          otherMemberMarkers[uid].setIcon(L.divIcon({ className: 'custom-map-pin', html: pinHtml, iconSize: [38, 46], iconAnchor: [19, 19] }));
+          otherMemberMarkers[uid].getPopup().setContent(popupHtml);
+        }
+
+        const badge = document.createElement('div');
+        badge.className = 'member-badge';
+        badge.onclick = () => {
+          map.flyTo([lat, lng], 17);
+          otherMemberMarkers[uid].openPopup();
+        };
+        badge.innerHTML = `
+          <div class="m-avatar" style="border-color:var(--accent-green);">${m.avatar ? `<img src="${m.avatar}" style="width:100%;height:100%;object-fit:cover;">` : (m.name ? m.name.charAt(0).toUpperCase() : 'M')}</div>
+          <div class="m-name">${m.name || 'Member'}</div>
+          <div class="m-meta">${statusLabel}</div>
+        `;
+        tray.appendChild(badge);
+      });
+
+      document.getElementById('circleCountText').innerText = `${onlineCount} Online`;
+    }
+
+    // Broadcast Presence across MQTT (Retained), Firebase RTDB, and Local Channel
+    window.broadcastPresence = (lat = null, lng = null) => {
+      renderCircleMembersOnMapAndTray();
+      if (!userCircle || !userId || isGhost) return;
+
+      // Slight offset per userId if using fallback coordinates so two test devices without GPS don't stack on top of each other
+      const hashOffset = ((userId.charCodeAt(4) || 50) - 50) * 0.0004;
+      const latitude = lat !== null ? lat : (lastPos ? lastPos[0] : (26.8467 + hashOffset));
+      const longitude = lng !== null ? lng : (lastPos ? lastPos[1] : (80.9462 - hashOffset));
+
+      const packet = {
+        kind: 'PRESENCE',
+        uid: userId,
+        circle: userCircle,
+        name: userName || "Member",
+        avatar: userAvatar || null,
+        lat: latitude,
+        lng: longitude,
+        speed: currentSpeedKmh,
+        battery: currentBatteryPct,
+        time: Date.now()
+      };
+
+      if (mqttClient && mqttClient.connected) {
+        mqttClient.publish(`track365/v3/${userCircle}/users/${userId}`, JSON.stringify(packet), { qos: 1, retain: true });
+      }
+      if (localChannel) localChannel.postMessage(packet);
+      if (db) {
+        set(ref(db, `circles/${userCircle}/users/${userId}`), packet).catch(() => {});
+      }
+    };
+
+    function broadcastCircleAlert(msg, alertType = 'INFO') {
+      if (!userCircle) return;
+      const packet = { kind: 'ALERT', uid: userId, circle: userCircle, msg, alertType, time: Date.now() };
+      if (mqttClient && mqttClient.connected) {
+        mqttClient.publish(`track365/v3/${userCircle}/alerts`, JSON.stringify(packet), { qos: 1 });
+      }
+      if (localChannel) localChannel.postMessage(packet);
+    }
+
+    function listenToCircleMembers() {
+      if (!userCircle) return;
+      subscribeToCircleTopic(userCircle);
+      if (db) {
+        onValue(ref(db, `circles/${userCircle}/users`), (snap) => {
+          const val = snap.val();
+          if (!val) return;
+          Object.keys(val).forEach(uid => {
+            if (uid !== userId) {
+              circleMembersMap[uid] = { ...val[uid], uid, circle: userCircle };
+            }
+          });
+          renderCircleMembersOnMapAndTray();
+        }, () => {});
+      }
+    }
+
+    // Zoom map to fit yourself + all online circle members
+    window.fitAllMembers = () => {
+      const pts = [];
+      if (lastPos) pts.push(lastPos);
+      Object.keys(otherMemberMarkers).forEach(uid => {
+        pts.push(otherMemberMarkers[uid].getLatLng());
+      });
+      if (pts.length > 1) {
+        map.fitBounds(L.latLngBounds(pts), { padding: [50, 50], maxZoom: 17 });
+      } else if (pts.length === 1) {
+        map.flyTo(pts[0], 16);
+      } else {
+        alert("Waiting for GPS or Circle members...");
+      }
+    };
+
+    // -------------------------------------------------------------
+    // 5. MULTI-SAFE-PLACES ENGINE (Zero Hardcoded Locations)
+    // -------------------------------------------------------------
+    let safePlaces = JSON.parse(localStorage.getItem('t365_places_v2')) || [];
+    let placeCircles = {};
+
+    function renderSafePlacesUI() {
+      const container = document.getElementById('safePlacesListGrid');
+      container.innerHTML = '';
+      Object.keys(placeCircles).forEach(id => map.removeLayer(placeCircles[id]));
+      placeCircles = {};
+
+      if (safePlaces.length === 0) {
+        container.innerHTML = `<div style="grid-column: span 2; font-size:0.73rem; color:var(--text-sub); padding:10px; text-align:center; border:1px dashed var(--border-color); border-radius:14px;">No Safe Places set yet. Tap <b>"📍 Set Spot as Home"</b> or <b>"+ Add Place"</b> to monitor arrivals & departures.</div>`;
+        document.getElementById('valDistance').innerText = "None Set";
+        localStorage.setItem('t365_places_v2', JSON.stringify(safePlaces));
+        return;
+      }
+
+      safePlaces.forEach((p, idx) => {
+        if (p.lat && p.lng) {
+          placeCircles[p.id] = L.circle([p.lat, p.lng], {
+            radius: p.radius, color: '#32D74B', fillColor: '#32D74B', fillOpacity: 0.14, weight: 2
+          }).addTo(map);
+        }
+        const card = document.createElement('div');
+        card.className = 'geofence-card';
+        card.innerHTML = `
+          <div onclick="map.flyTo([${p.lat}, ${p.lng}], 16)" style="flex:1; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">
+            <span>🛡️</span> ${p.name}
+          </div>
+          <button onclick="removeSafePlace(${idx})" style="background:none; border:none; color:var(--accent-danger); font-size:0.82rem; cursor:pointer; padding:2px 6px;">✕</button>
+        `;
+        container.appendChild(card);
+      });
+      localStorage.setItem('t365_places_v2', JSON.stringify(safePlaces));
+    }
+
+    window.removeSafePlace = (idx) => { safePlaces.splice(idx, 1); renderSafePlacesUI(); };
+
+    window.setHomeToCurrentGps = () => {
+      if (!lastPos) return alert("Waiting for live GPS lock...");
+      const customName = prompt("Enter name for your Home zone:", "Home");
+      if (!customName) return;
+      const idx = safePlaces.findIndex(p => p.id === 'home');
+      const homeObj = { id: 'home', name: customName.trim(), lat: lastPos[0], lng: lastPos[1], radius: 250 };
+      if (idx !== -1) safePlaces[idx] = homeObj;
+      else safePlaces.unshift(homeObj);
+      renderSafePlacesUI();
+      document.getElementById('valDistance').innerText = `0 m (${homeObj.name})`;
+      playAlertChime('enter');
+      triggerAlarmBanner(`✅ "${homeObj.name}" locked at your current GPS spot (0m)!`, false);
+    };
+
+    window.addCurrentLocationAsSafePlace = () => {
+      if (!lastPos) return alert("Waiting for live GPS lock...");
+      const name = prompt("Enter Safe Place name (e.g. School, Coaching, Office):");
+      if (!name) return;
+      safePlaces.push({ id: 'pl_' + Date.now(), name: name.trim(), lat: lastPos[0], lng: lastPos[1], radius: 250 });
+      renderSafePlacesUI();
+      playAlertChime('enter');
+      triggerAlarmBanner(`🛡️ Safe Place "${name.trim()}" added!`, false);
+    };
+
+    renderSafePlacesUI();
+
+    // -------------------------------------------------------------
+    // 6. TRIP & DRIVE TIMELINE LOG
+    // -------------------------------------------------------------
+    let tripLogs = JSON.parse(localStorage.getItem('t365_trips')) || [];
+    let activeTripStartPos = null;
+    let maxTripSpeed = 0;
+
+    function renderTripLogs() {
+      const box = document.getElementById('tripTimelineBox');
+      if (tripLogs.length === 0) {
+        box.innerHTML = `<div style="color:var(--text-sub); text-align:center; padding:6px;">No trips logged yet. Drives (>12 km/h) auto-record or tap <b>+ Log Current Trip</b>.</div>`;
+        return;
+      }
+      box.innerHTML = tripLogs.slice(0, 8).map(t => `
+        <div class="trip-item">
+          <span>🚗 <b>${t.label}</b> (${t.dist})</span>
+          <span style="color:var(--accent-green); font-weight:700;">Max ${t.maxSpd} km/h &bull; ${t.time}</span>
+        </div>
+      `).join('');
+    }
+    renderTripLogs();
+
+    window.recordManualTripPoint = () => {
+      const nowStr = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+      const distStr = activeTripStartPos && lastPos
+        ? `${(calculateDistanceKm(activeTripStartPos[0], activeTripStartPos[1], lastPos[0], lastPos[1])).toFixed(2)} km`
+        : "Check-in";
+      tripLogs.unshift({
+        label: userName ? `${userName}'s Route` : "Saved Trip",
+        dist: distStr,
+        maxSpd: Math.max(parseFloat(currentSpeedKmh), maxTripSpeed).toFixed(1),
+        time: nowStr
+      });
+      localStorage.setItem('t365_trips', JSON.stringify(tripLogs.slice(0, 15)));
+      renderTripLogs();
+      triggerAlarmBanner("📈 Trip logged to timeline!", false);
+    };
+
+    // -------------------------------------------------------------
+    // 7. AUDIO CHIMES, SIREN & NATIVE PUSH NOTIFICATIONS
+    // -------------------------------------------------------------
+    function playAlertChime(type) {
+      try {
+        const ctx = sharedAudioCtx || new (window.AudioContext || window.webkitAudioContext)();
+        if (ctx.state === 'suspended') ctx.resume();
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+
+        if (type === 'exit') {
+          osc.frequency.setValueAtTime(680, ctx.currentTime);
+          osc.frequency.exponentialRampToValueAtTime(320, ctx.currentTime + 0.45);
+        } else {
+          osc.frequency.setValueAtTime(440, ctx.currentTime);
+          osc.frequency.exponentialRampToValueAtTime(880, ctx.currentTime + 0.45);
+        }
+        gain.gain.setValueAtTime(0.5, ctx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.5);
+        osc.start();
+        osc.stop(ctx.currentTime + 0.5);
+      } catch (e) {}
+    }
+
+    window.enableNotifications = async () => {
+      if (!('Notification' in window)) return alert("Notifications not supported on this browser.");
+      const perm = await Notification.requestPermission();
+      if (perm === 'granted') {
+        playAlertChime('enter');
+        sendSystemNotification("Track365 Alerts Active", "You will receive instant arrival, departure, and SOS alerts.");
+        triggerAlarmBanner("🔔 Lock-screen notifications enabled!", false);
+      } else {
+        alert("Please allow notifications in browser settings.");
+      }
+    };
+
+    function sendSystemNotification(title, body) {
+      if ('Notification' in window && Notification.permission === 'granted') {
+        try { new Notification(title, { body }); } catch (e) {}
+      }
+    }
+
+    let sirenInterval = null;
+    window.triggerSos = () => {
+      const btn = document.getElementById('sosBtn');
+      if (sirenInterval) {
+        clearInterval(sirenInterval);
+        sirenInterval = null;
+        btn.classList.remove('siren-active');
+        triggerAlarmBanner("✅ SOS Siren Silenced.", false);
+        return;
+      }
+      btn.classList.add('siren-active');
+      playAlertChime('exit');
+      sirenInterval = setInterval(() => playAlertChime('exit'), 700);
+
+      const coordsText = lastPos ? `https://maps.google.com/?q=${lastPos[0]},${lastPos[1]}` : "GPS acquiring";
+      const alertText = `🚨 SOS EMERGENCY from ${userName || 'Family Member'}! Location: ${coordsText}`;
+      triggerAlarmBanner("🚨 SOS SIREN ACTIVE! Tap 🚨 again to silence.", true);
+      broadcastCircleAlert(alertText, 'DANGER');
+    };
+
+    function triggerAlarmBanner(text, isDanger) {
+      const banner = document.getElementById('alarmBanner');
+      banner.innerText = text;
+      banner.style.background = isDanger ? "rgba(255, 69, 58, 0.95)" : "rgba(50, 215, 75, 0.95)";
+      banner.style.display = 'block';
+      setTimeout(() => { banner.style.display = 'none'; }, 6000);
+    }
+
+    // -------------------------------------------------------------
+    // 8. WEATHER & GEOLOCATION HARDWARE ENGINE
+    // -------------------------------------------------------------
+    function calculateDistanceKm(lat1, lon1, lat2, lon2) {
+      const R = 6371;
+      const dLat = (lat2 - lat1) * Math.PI / 180;
+      const dLon = (lon2 - lon1) * Math.PI / 180;
+      const a = Math.sin(dLat/2)**2 + Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * Math.sin(dLon/2)**2;
+      return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+    }
+
+    async function updateWeather(lat, lng) {
+      try {
+        const res = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lng}&current=temperature_2m,weather_code`);
+        const data = await res.json();
+        if (data && data.current) {
+          const temp = Math.round(data.current.temperature_2m);
+          const c = data.current.weather_code;
+          const cond = c === 0 ? "☀️ Sunny" : c <= 3 ? "⛅ Cloudy" : c <= 48 ? "🌫️ Misty" : c <= 67 ? "🌧️ Rain" : "⛈️ Storm";
+          document.getElementById('valWeather').innerText = `${temp}°C`;
+          document.getElementById('labelWeather').innerText = cond;
+        }
+      } catch (e) {}
+    }
+
+    const getMyPinHTML = () => {
+      const inner = userAvatar
+        ? `<img src="${userAvatar}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">`
+        : `<div style="background:#0A84FF;width:100%;height:100%;border-radius:50%;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:800;font-size:0.8rem;">${userName ? userName.charAt(0).toUpperCase() : 'Y'}</div>`;
+      const op = isGhost ? "0.45" : "1";
+      return `<div style="width:36px;height:36px;border-radius:50%;border:3px solid #fff;overflow:hidden;box-shadow:0 0 16px rgba(10,132,255,0.85);opacity:${op};">${inner}</div>`;
+    };
+
+    let weatherTick = 0;
+    let lastBroadcastTs = 0;
+
+    if (navigator.geolocation) {
+      navigator.geolocation.watchPosition((pos) => {
+        const { latitude, longitude, speed, accuracy } = pos.coords;
+        if (!activeTripStartPos) activeTripStartPos = [latitude, longitude];
+        lastPos = [latitude, longitude];
+
+        if (weatherTick % 45 === 0) updateWeather(latitude, longitude);
+        weatherTick++;
+
+        const kmh = speed ? (speed * 3.6) : 0;
+        currentSpeedKmh = kmh.toFixed(1);
+        if (kmh > maxTripSpeed) maxTripSpeed = kmh;
+        document.getElementById('valSpeed').innerText = currentSpeedKmh;
+        document.getElementById('iconSpeed').innerText = kmh > 25 ? '🚗' : kmh > 6 ? '🚴' : kmh > 1 ? '🚶' : '🧍';
+
+        // Store-Friendly GPS Status
+        const gpsEl = document.getElementById('valGpsQuality');
+        if (accuracy <= 25) { gpsEl.innerText = "Strong 🟢"; gpsEl.style.color = "var(--accent-green)"; }
+        else if (accuracy <= 75) { gpsEl.innerText = "Good 🟡"; gpsEl.style.color = "var(--accent-amber)"; }
+        else { gpsEl.innerText = "Searching ⚪"; gpsEl.style.color = "var(--text-sub)"; }
+
+        // Evaluate Safe Places Distance & In/Out Alerts
+        if (safePlaces.length > 0) {
+          let closest = null, minKm = Infinity;
+          safePlaces.forEach((p) => {
+            if (p.lat && p.lng) {
+              const dKm = calculateDistanceKm(latitude, longitude, p.lat, p.lng);
+              if (dKm < minKm) { minKm = dKm; closest = p; }
+              const inside = (dKm * 1000) <= p.radius;
+              const key = `${userId}_${p.id}`;
+              if (memberPlaceStates[key] !== undefined && memberPlaceStates[key] !== inside) {
+                memberPlaceStates[key] = inside;
+                const msg = inside ? `✅ ${userName || 'Member'} ARRIVED at ${p.name}` : `🚨 ${userName || 'Member'} LEFT ${p.name}`;
+                playAlertChime(inside ? 'enter' : 'exit');
+                triggerAlarmBanner(msg, !inside);
+                broadcastCircleAlert(msg, inside ? 'INFO' : 'DANGER');
+              } else {
+                memberPlaceStates[key] = inside;
+              }
+            }
+          });
+          if (closest) {
+            const mDist = Math.round(minKm * 1000);
+            document.getElementById('valDistance').innerText = mDist <= closest.radius ? `0 m (${closest.name})` : (minKm < 1 ? `${mDist} m` : `${minKm.toFixed(1)} km`);
+          }
+        }
+
+        if (!userMarker) {
+          userMarker = L.marker(lastPos, { icon: L.divIcon({ className: 'custom-map-pin', html: getMyPinHTML(), iconSize: [36, 36], iconAnchor: [18, 18] }) }).addTo(map);
+          map.setView(lastPos, 16);
+        } else {
+          userMarker.setLatLng(lastPos);
+        }
+
+        if (isRadar && radarCircle) radarCircle.setLatLng(lastPos);
+        if (isTrace) {
+          traceCoords.push(lastPos);
+          if (tracePolyline) tracePolyline.setLatLngs(traceCoords);
+          else tracePolyline = L.polyline(traceCoords, { color: '#0A84FF', weight: 4 }).addTo(map);
+        }
+
+        const throttleMs = isBatterySaver ? 20000 : 2000;
+        if (Date.now() - lastBroadcastTs > throttleMs) {
+          lastBroadcastTs = Date.now();
+          window.broadcastPresence(latitude, longitude);
+        }
+      }, console.warn, { enableHighAccuracy: true, maximumAge: 1000, timeout: 10000 });
+    }
+
+    // Keep-alive heartbeat so stationary members stay synced
+    setInterval(() => {
+      if (userCircle && userId && !isGhost) {
+        window.broadcastPresence(lastPos ? lastPos[0] : null, lastPos ? lastPos[1] : null);
+      }
+    }, 3500);
+
+    // Battery Monitor
+    if ('getBattery' in navigator) {
+      navigator.getBattery().then(b => {
+        const updateBatt = () => {
+          currentBatteryPct = Math.round(b.level * 100);
+          document.getElementById('valBatt').innerText = `🔋 ${currentBatteryPct}%`;
+        };
+        updateBatt();
+        b.addEventListener('levelchange', updateBatt);
+      });
+    }
+
+    // Accelerometer Crash Shield
+    if (window.DeviceMotionEvent) {
+      let prevAcc = 0;
+      window.addEventListener('devicemotion', (e) => {
+        if (!isBrakingShield || !e.acceleration) return;
+        const total = Math.sqrt((e.acceleration.x || 0)**2 + (e.acceleration.y || 0)**2 + (e.acceleration.z || 0)**2);
+        if (Math.abs(total - prevAcc) > 23) {
+          triggerAlarmBanner("⚠️ Hard Braking / Impact Detected!", true);
+          broadcastCircleAlert(`⚠️ High G-Force / Hard Braking detected for ${userName || 'Member'}!`, 'DANGER');
+        }
+        prevAcc = total;
+      });
+    }
+
+    // -------------------------------------------------------------
+    // 9. PROFILE, CIRCLE & FEATURE HANDLERS
+    // -------------------------------------------------------------
+    function updateProfileUI() {
+      if (userName) document.getElementById('navName').innerText = userName;
+      if (userCircle) {
+        document.getElementById('navCircleText').innerText = "Circle: " + userCircle;
+        document.getElementById('activeCodeDisplay').innerText = "Active Circle Code: " + userCircle;
+      }
+      const avCircle = document.getElementById('navAvatar');
+      if (userAvatar) avCircle.innerHTML = `<img src="${userAvatar}">`;
+      else if (userName) avCircle.innerText = userName.charAt(0).toUpperCase();
+      renderCircleMembersOnMapAndTray();
     }
 
     function syncProUI() {
       if (isProUnlocked) {
-        document.getElementById('badgeGhost').innerText = "ACTIVE";
-        document.getElementById('badgeGhost').style.background = "rgba(50,215,75,0.2)";
-        document.getElementById('badgeGhost').style.color = "var(--accent-green)";
-        document.getElementById('badgeRadar').innerText = "ACTIVE";
-        document.getElementById('badgeRadar').style.background = "rgba(50,215,75,0.2)";
-        document.getElementById('badgeRadar').style.color = "var(--accent-green)";
+        ['badgeGhost', 'badgeRadar'].forEach(id => {
+          const el = document.getElementById(id);
+          el.innerText = "ACTIVE";
+          el.style.background = "rgba(50,215,75,0.2)";
+          el.style.color = "var(--accent-green)";
+        });
         document.getElementById('posterHeader').innerText = "⚡ Track365 Plus Active";
-        document.getElementById('posterSub').innerText = "Lifetime pass active. All circle protections enabled.";
+        document.getElementById('posterSub').innerText = "Lifetime pass unlocked. All Plus family protections active.";
         document.getElementById('posterBtn').innerText = "PLUS";
       }
     }
@@ -792,702 +1051,194 @@
       updateProfileUI();
     }
 
-    window.processImage = (event) => {
-      const file = event.target.files[0];
+    if (userCircle) listenToCircleMembers();
+
+    window.processImage = (ev) => {
+      const file = ev.target.files[0];
       if (!file) return;
       const reader = new FileReader();
       reader.onload = (e) => {
-        document.getElementById('imgPreview').src = e.target.result;
+        userAvatar = e.target.result;
+        document.getElementById('imgPreview').src = userAvatar;
         document.getElementById('imgPreview').style.display = 'block';
         document.getElementById('imgPlaceholder').style.display = 'none';
-        userAvatar = e.target.result;
       };
       reader.readAsDataURL(file);
     };
 
     window.saveLocalAccount = () => {
       const input = document.getElementById('authNameInput').value.trim();
-      if (input.length < 2) return alert("Enter a valid name.");
+      if (input.length < 2) return alert("Please enter your name.");
       userName = input;
-
+      storageEngine.setItem('t365_name_instance', userName);
       localStorage.setItem('t365_name', userName);
-      localStorage.setItem('t365_uid', userId);
       if (userAvatar) localStorage.setItem('t365_avatar', userAvatar);
-
-      document.getElementById('authModal').style.display = 'none';
+      closeModal('authModal');
       updateProfileUI();
+      if (userMarker) userMarker.setIcon(L.divIcon({ className: 'custom-map-pin', html: getMyPinHTML(), iconSize: [36, 36], iconAnchor: [18, 18] }));
       window.broadcastPresence();
       listenToCircleMembers();
-    };
-
-    function updateProfileUI() {
-      if (userName) {
-        document.getElementById('navName').innerText = userName;
-        document.getElementById('myTrayName').innerText = userName;
-      }
-      if (userCircle) document.getElementById('navCircleText').innerText = "Circle: " + userCircle;
-
-      const avCircle = document.getElementById('navAvatar');
-      const trayAv = document.getElementById('myTrayAvatar');
-      if (userAvatar) {
-        avCircle.innerHTML = `<img src="${userAvatar}">`;
-        trayAv.innerHTML = `<img src="${userAvatar}" style="width:100%;height:100%;object-fit:cover;">`;
-      } else if (userName) {
-        avCircle.innerText = userName.charAt(0).toUpperCase();
-        trayAv.innerText = userName.charAt(0).toUpperCase();
-      }
-    }
-
-    const mapLayers = [
-      {
-        name: "Satellite (Hybrid View)",
-        layer: L.tileLayer('https://mt1.google.com/vt/lyrs=y&x={x}&y={y}&z={z}', { maxZoom: 20 })
-      },
-      {
-        name: "Streets (Detailed View)",
-        layer: L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19 })
-      },
-      {
-        name: "Dark View",
-        layer: L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', { maxZoom: 19 })
-      }
-    ];
-
-    let currentLayerIndex = 0;
-    const map = L.map('map', { zoomControl: false }).setView([20.5937, 78.9629], 5);
-    mapLayers[currentLayerIndex].layer.addTo(map);
-
-    window.cycleMapLayer = () => {
-      map.removeLayer(mapLayers[currentLayerIndex].layer);
-      currentLayerIndex = (currentLayerIndex + 1) % mapLayers.length;
-      mapLayers[currentLayerIndex].layer.addTo(map);
-      document.getElementById('mapLayerBadge').innerText = mapLayers[currentLayerIndex].name;
-    };
-
-    let userMarker, radarCircle, tracePolyline;
-    let traceCoords = [];
-    let lastPos = null;
-
-    let otherMemberMarkers = {};
-
-    let isGhost = false, isRadar = false, isTrace = false, isBrakingShield = true;
-    let currentBatteryPct = 100;
-
-    let safePlaces = JSON.parse(localStorage.getItem('t365_places')) || [];
-    let placeCircles = {};
-    let memberPlaceStates = {};
-
-    function renderSafePlacesUI() {
-      const container = document.getElementById('safePlacesListGrid');
-      container.innerHTML = '';
-
-      Object.keys(placeCircles).forEach(id => map.removeLayer(placeCircles[id]));
-      placeCircles = {};
-
-      if (safePlaces.length === 0) {
-        container.innerHTML = `<div style="grid-column: span 2; font-size:0.75rem; color:var(--text-sub); padding:10px; text-align:center; border:1px dashed var(--border-color); border-radius:14px;">No safe places configured yet.<br>Tap <b>"📍 Set Spot as Home"</b> or <b>"+ Add Place"</b>.</div>`;
-        document.getElementById('valDistance').innerText = "None Set";
-        return;
-      }
-
-      safePlaces.forEach((p, idx) => {
-        if (p.lat && p.lng) {
-          placeCircles[p.id] = L.circle([p.lat, p.lng], {
-            radius: p.radius,
-            color: '#32D74B',
-            fillColor: '#32D74B',
-            fillOpacity: 0.12,
-            weight: 2
-          }).addTo(map);
-        }
-
-        const card = document.createElement('div');
-        card.className = 'geofence-card';
-        card.innerHTML = `
-          <div onclick="map.flyTo([${p.lat}, ${p.lng}], 16)" style="flex:1;">
-            <span>📍</span> ${p.name}
-          </div>
-          <button onclick="removeSafePlace(${idx})" style="background:none; border:none; color:var(--accent-danger); font-size:0.8rem; cursor:pointer; padding:2px 6px;">✕</button>
-        `;
-        container.appendChild(card);
-      });
-
-      localStorage.setItem('t365_places', JSON.stringify(safePlaces));
-    }
-    renderSafePlacesUI();
-
-    window.removeSafePlace = (index) => {
-      safePlaces.splice(index, 1);
-      renderSafePlacesUI();
-    };
-
-    window.setHomeToCurrentGps = () => {
-      if (!lastPos) return alert("Waiting for your phone's live GPS signal...");
-      const homeIndex = safePlaces.findIndex(p => p.id === 'home');
-      const homeName = prompt("Name this primary safe place:", "Home") || "Home";
-      
-      if (homeIndex !== -1) {
-        safePlaces[homeIndex].name = homeName;
-        safePlaces[homeIndex].lat = lastPos[0];
-        safePlaces[homeIndex].lng = lastPos[1];
-      } else {
-        safePlaces.unshift({ id: 'home', name: homeName, lat: lastPos[0], lng: lastPos[1], radius: 250 });
-      }
-      renderSafePlacesUI();
-      document.getElementById('valDistance').innerText = `0 m (${homeName})`;
-      alert(`✅ Configured! "${homeName}" is mapped to your precise GPS location.`);
-    };
-
-    window.addCurrentLocationAsSafePlace = () => {
-      if (!lastPos) return alert("Waiting for live GPS signal...");
-      const name = prompt("Name this safe place (e.g. Work, Coaching, Campus):");
-      if (name) {
-        safePlaces.push({
-          id: 'place_' + Date.now(),
-          name: name,
-          lat: lastPos[0],
-          lng: lastPos[1],
-          radius: 250
-        });
-        renderSafePlacesUI();
-        alert(`🛡️ Safe Place "${name}" activated! Arrivals and departures will be tracked.`);
-      }
-    };
-
-    const getMarkerHTML = () => {
-      const inner = userAvatar
-        ? `<img src="${userAvatar}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">`
-        : `<div style="background:#0A84FF;width:100%;height:100%;border-radius:50%;"></div>`;
-      const op = isGhost ? "0.4" : "1";
-      return `<div style="width:32px;height:32px;border-radius:50%;border:3px solid #fff;overflow:hidden;box-shadow:0 0 14px rgba(0,0,0,0.6); opacity:${op};">${inner}</div>`;
-    };
-
-    function calculateDistanceKm(lat1, lon1, lat2, lon2) {
-      const R = 6371;
-      const dLat = (lat2 - lat1) * Math.PI / 180;
-      const dLon = (lon2 - lon1) * Math.PI / 180;
-      const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
-                Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
-                Math.sin(dLon/2) * Math.sin(dLon/2);
-      const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
-      return R * c;
-    }
-
-    function playAlertChime(type) {
-      try {
-        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-        const osc = audioCtx.createOscillator();
-        const gain = audioCtx.createGain();
-        osc.connect(gain);
-        gain.connect(audioCtx.destination);
-
-        if (type === 'exit') {
-          osc.frequency.setValueAtTime(660, audioCtx.currentTime);
-          osc.frequency.exponentialRampToValueAtTime(330, audioCtx.currentTime + 0.4);
-          gain.gain.setValueAtTime(0.6, audioCtx.currentTime);
-          gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.6);
-          osc.start();
-          osc.stop(audioCtx.currentTime + 0.6);
-        } else {
-          osc.frequency.setValueAtTime(440, audioCtx.currentTime);
-          osc.frequency.exponentialRampToValueAtTime(880, audioCtx.currentTime + 0.4);
-          gain.gain.setValueAtTime(0.6, audioCtx.currentTime);
-          gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.6);
-          osc.start();
-          osc.stop(audioCtx.currentTime + 0.6);
-        }
-      } catch (err) {
-        console.warn("Audio warning:", err.message);
-      }
-    }
-
-    function triggerAlarmBanner(text, isDanger) {
-      const banner = document.getElementById('alarmBanner');
-      banner.innerText = text;
-      banner.style.background = isDanger ? "rgba(255, 69, 58, 0.95)" : "rgba(50, 215, 75, 0.95)";
-      banner.style.display = 'block';
-      setTimeout(() => { banner.style.display = 'none'; }, 6000);
-    }
-
-    async function updateWeather(lat, lng) {
-      try {
-        const res = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lng}&current=temperature_2m,weather_code`);
-        const data = await res.json();
-        if (data && data.current) {
-          const temp = Math.round(data.current.temperature_2m);
-          const code = data.current.weather_code;
-          let cond = "☀️ Sunny";
-          if (code > 0 && code <= 3) cond = "⛅ Cloudy";
-          else if (code >= 45 && code <= 48) cond = "🌫️ Foggy";
-          else if (code >= 51 && code <= 67) cond = "🌧️ Rain";
-          else if (code >= 80 && code <= 99) cond = "⛈️ Thunder";
-
-          document.getElementById('valWeather').innerText = `${temp}°C`;
-          document.getElementById('labelWeather').innerText = cond;
-        }
-      } catch (e) {
-        console.warn("Weather sync error:", e);
-      }
-    }
-
-    // -------------------------------------------------------------
-    // INSTANT UNCONDITIONAL BROADCAST (Fixes Missing Member Problem)
-    // -------------------------------------------------------------
-    window.broadcastPresence = (lat = null, lng = null) => {
-      if (!userCircle || !userId) return;
-
-      // Provide robust fallback coordinate if hardware GPS hasn't locked yet
-      const latitude = lat !== null ? lat : (lastPos ? lastPos[0] : 20.5937);
-      const longitude = lng !== null ? lng : (lastPos ? lastPos[1] : 78.9629);
-
-      const myData = {
-        name: userName || "Family Member",
-        avatar: userAvatar || null,
-        lat: latitude,
-        lng: longitude,
-        speed: "0.0",
-        battery: currentBatteryPct || 100,
-        time: Date.now()
-      };
-
-      set(ref(db, `circles/${userCircle}/users/${userId}`), myData);
-    };
-
-    function listenToCircleMembers() {
-      if (!userCircle) return;
-
-      const circleRef = ref(db, `circles/${userCircle}/users`);
-      onValue(circleRef, (snapshot) => {
-        const data = snapshot.val();
-        if (!data) return;
-
-        const tray = document.getElementById('circleMembersTray');
-        tray.innerHTML = `
-          <div class="member-badge" onclick="recenterLocation()">
-            <div class="m-avatar" id="myTrayAvatar">${userAvatar ? `<img src="${userAvatar}" style="width:100%;height:100%;object-fit:cover;">` : (userName ? userName[0] : 'U')}</div>
-            <div class="m-name">${userName || 'You'}</div>
-            <div class="m-meta">You</div>
-          </div>
-        `;
-
-        let count = 1;
-
-        Object.keys(data).forEach((uid) => {
-          if (uid === userId) return;
-
-          const member = data[uid];
-          if (!member) return;
-
-          const latNum = parseFloat(member.lat);
-          const lngNum = parseFloat(member.lng);
-          if (isNaN(latNum) || isNaN(lngNum)) return;
-
-          count++;
-
-          safePlaces.forEach((p) => {
-            if (p.lat && p.lng) {
-              const distMeters = calculateDistanceKm(latNum, lngNum, p.lat, p.lng) * 1000;
-              const isInside = distMeters <= p.radius;
-              const stateKey = `${uid}_${p.id}`;
-
-              if (memberPlaceStates[stateKey] !== undefined) {
-                if (memberPlaceStates[stateKey] === true && !isInside) {
-                  memberPlaceStates[stateKey] = false;
-                  playAlertChime('exit');
-                  triggerAlarmBanner(`🚨 Safe Zone Alert: ${member.name || 'Member'} has LEFT ${p.name}!`, true);
-                } else if (memberPlaceStates[stateKey] === false && isInside) {
-                  memberPlaceStates[stateKey] = true;
-                  playAlertChime('enter');
-                  triggerAlarmBanner(`✅ Safe Zone Update: ${member.name || 'Member'} has ARRIVED at ${p.name}!`, false);
-                }
-              } else {
-                memberPlaceStates[stateKey] = isInside;
-              }
-            }
-          });
-
-          const timeDiffSec = member.time ? Math.round((Date.now() - member.time) / 1000) : 0;
-          let statusText = "Active now";
-          if (timeDiffSec > 300) statusText = `${Math.round(timeDiffSec / 60)}m ago`;
-
-          const navUrl = `https://www.google.com/maps/dir/?api=1&destination=${latNum},${lngNum}`;
-
-          const mHtml = `
-            <div style="width:34px;height:34px;border-radius:50%;border:3px solid #32D74B;background:#111;overflow:hidden;box-shadow:0 0 14px rgba(50,215,75,0.7);display:flex;align-items:center;justify-content:center;color:#fff;font-weight:800;font-size:0.75rem;">
-              ${member.avatar ? `<img src="${member.avatar}" style="width:100%;height:100%;object-fit:cover;">` : (member.name ? member.name[0] : 'U')}
-            </div>
-          `;
-
-          const popupContent = `
-            <b>${member.name || 'Member'}</b><br>
-            Speed: ${member.speed || 0} KM/H<br>
-            Battery: ${member.battery || '--'}%<br>
-            <a href="${navUrl}" target="_blank" style="display:inline-block; margin-top:6px; background:#0A84FF; color:#fff; text-decoration:none; padding:4px 8px; border-radius:6px; font-weight:700; font-size:0.75rem;">🧭 Navigate Here</a>
-          `;
-
-          if (!otherMemberMarkers[uid]) {
-            otherMemberMarkers[uid] = L.marker([latNum, lngNum], {
-              icon: L.divIcon({ className: 'custom-map-pin', html: mHtml, iconSize: [34, 34], iconAnchor: [17, 17] })
-            }).addTo(map).bindPopup(popupContent);
-          } else {
-            otherMemberMarkers[uid].setLatLng([latNum, lngNum]);
-            otherMemberMarkers[uid].getPopup().setContent(popupContent);
-          }
-
-          const badge = document.createElement('div');
-          badge.className = 'member-badge';
-          badge.onclick = () => map.flyTo([latNum, lngNum], 17);
-          badge.innerHTML = `
-            <div class="m-avatar">${member.avatar ? `<img src="${member.avatar}" style="width:100%;height:100%;object-fit:cover;">` : (member.name ? member.name[0] : 'U')}</div>
-            <div class="m-name">${member.name || 'Member'}</div>
-            <div class="m-meta">${statusText}</div>
-          `;
-          tray.appendChild(badge);
-        });
-
-        document.getElementById('circleCountText').innerText = `${count} Online`;
-      });
-    }
-
-    // 4-Second Keep-Alive Background Ping
-    setInterval(() => {
-      if (userCircle && userId && lastPos) {
-        window.broadcastPresence(lastPos[0], lastPos[1]);
-      }
-    }, 4000);
-
-    window.shareLiveLocationWhatsApp = () => {
-      if (!lastPos) return alert("Waiting for GPS lock...");
-      const gmapsUrl = `https://maps.google.com/?q=${lastPos[0]},${lastPos[1]}`;
-      const msg = encodeURIComponent(`📍 Hi! Here is my live location on Track365: ${gmapsUrl}`);
-      window.open(`https://wa.me/?text=${msg}`, '_blank');
-    };
-
-    window.shareCircleWhatsApp = () => {
-      if (!userCircle) return alert("Create or join a Circle first.");
-      const msg = encodeURIComponent(`🛡️ Join our Family Circle on Track365! Enter Circle Code: ${userCircle}`);
-      window.open(`https://wa.me/?text=${msg}`, '_blank');
-    };
-
-    window.sendCircleCheckIn = () => {
-      if (!userCircle || !lastPos) return alert("Circle or GPS not connected.");
-      push(ref(db, `circles/${userCircle}/alerts`), {
-        type: "CHECK_IN",
-        msg: `📍 ${userName || 'Member'} checked in safely!`,
-        lat: lastPos[0],
-        lng: lastPos[1],
-        time: Date.now()
-      });
-      playAlertChime('enter');
-      triggerAlarmBanner(`✅ Checked in! Circle members notified.`, false);
     };
 
     window.createCircle = () => {
-      const code = Math.random().toString(36).substr(2, 6).toUpperCase();
+      const code = Math.random().toString(36).substring(2, 8).toUpperCase();
       userCircle = code;
       localStorage.setItem('t365_circle', code);
-      window.broadcastPresence();
-      alert("New Circle Code Created: " + code);
+      Object.keys(otherMemberMarkers).forEach(u => map.removeLayer(otherMemberMarkers[u]));
       updateProfileUI();
       closeModal('circleModal');
       listenToCircleMembers();
+      window.broadcastPresence();
+      triggerAlarmBanner(`🛡️ Circle ${code} Created & Live!`, false);
     };
 
     window.joinCircle = () => {
       const code = document.getElementById('joinCodeInput').value.trim().toUpperCase();
-      if (code.length !== 6) return alert("Code must be exactly 6 characters.");
+      if (code.length !== 6) return alert("Enter a valid 6-character Circle Code.");
       userCircle = code;
       localStorage.setItem('t365_circle', code);
-      window.broadcastPresence();
-      alert("Joined Circle: " + code);
       updateProfileUI();
       closeModal('circleModal');
       listenToCircleMembers();
-    };
-
-    if (userCircle) {
       window.broadcastPresence();
-      listenToCircleMembers();
-    }
-
-    let deferredPrompt = null;
-    window.addEventListener('beforeinstallprompt', (e) => {
-      e.preventDefault();
-      deferredPrompt = e;
-      document.getElementById('installPwaBtn').style.display = 'flex';
-    });
-
-    window.triggerPwaInstall = async () => {
-      if (deferredPrompt) {
-        deferredPrompt.prompt();
-        const { outcome } = await deferredPrompt.userChoice;
-        if (outcome === 'accepted') {
-          document.getElementById('installPwaBtn').style.display = 'none';
-        }
-        deferredPrompt = null;
-      } else {
-        alert("📲 To install on your phone: Tap browser Share/Menu ➔ 'Add to Home Screen'.");
-      }
+      triggerAlarmBanner(`✅ Joined Circle ${code}! Syncing members...`, false);
     };
 
-    if (window.DeviceMotionEvent) {
-      let lastAcc = 0;
-      window.addEventListener('devicemotion', (e) => {
-        if (!isBrakingShield || !e.acceleration) return;
-        const currentAcc = Math.sqrt(e.acceleration.x**2 + e.acceleration.y**2 + e.acceleration.z**2);
-        const delta = Math.abs(currentAcc - lastAcc);
-        lastAcc = currentAcc;
-
-        if (delta > 22 && lastPos) {
-          triggerAlarmBanner("⚠️ Sudden Deceleration / Stop Detected!", true);
-          if (userCircle && !isGhost) {
-            push(ref(db, `circles/${userCircle}/alerts`), {
-              type: "HARD_BRAKING",
-              msg: `⚠️ High Deceleration detected for ${userName || 'Member'}!`,
-              time: Date.now()
-            });
-          }
-        }
-      });
-    }
-
-    let weatherSyncTick = 0;
-
-    if (navigator.geolocation) {
-      navigator.geolocation.watchPosition((pos) => {
-        const { latitude, longitude, speed, accuracy } = pos.coords;
-        lastPos = [latitude, longitude];
-
-        if (weatherSyncTick % 60 === 0) {
-          updateWeather(latitude, longitude);
-        }
-        weatherSyncTick++;
-
-        const kmh = speed ? (speed * 3.6) : 0;
-        document.getElementById('valSpeed').innerText = kmh.toFixed(1);
-
-        let speedIcon = '🧍';
-        if (kmh > 25) speedIcon = '🚗';
-        else if (kmh > 6) speedIcon = '🚴';
-        else if (kmh > 1) speedIcon = '🚶';
-        document.getElementById('iconSpeed').innerText = speedIcon;
-
-        const gpsEl = document.getElementById('valGpsQuality');
-        if (accuracy <= 20) {
-          gpsEl.innerText = "Strong 🟢";
-          gpsEl.style.color = "var(--accent-green)";
-        } else if (accuracy <= 60) {
-          gpsEl.innerText = "Good 🟡";
-          gpsEl.style.color = "var(--accent-amber)";
-        } else {
-          gpsEl.innerText = "Searching ⚪";
-          gpsEl.style.color = "var(--text-sub)";
-        }
-
-        if (safePlaces.length > 0) {
-          let closestPlace = null;
-          let minDistanceKm = Infinity;
-
-          safePlaces.forEach((p) => {
-            if (p.lat && p.lng) {
-              const distKm = calculateDistanceKm(latitude, longitude, p.lat, p.lng);
-              if (distKm < minDistanceKm) {
-                minDistanceKm = distKm;
-                closestPlace = p;
-              }
-
-              const distMeters = distKm * 1000;
-              const isInside = distMeters <= p.radius;
-              const stateKey = `${userId}_${p.id}`;
-
-              if (memberPlaceStates[stateKey] !== undefined) {
-                if (memberPlaceStates[stateKey] === true && !isInside) {
-                  memberPlaceStates[stateKey] = false;
-                  playAlertChime('exit');
-                  triggerAlarmBanner(`🚨 Safe Zone Alert: You have LEFT ${p.name}!`, true);
-                  if (userCircle && !isGhost) {
-                    push(ref(db, `circles/${userCircle}/alerts`), {
-                      type: "GEOFENCE_EXIT",
-                      msg: `🚨 ${userName || 'Member'} has LEFT ${p.name}!`,
-                      time: Date.now()
-                    });
-                  }
-                } else if (memberPlaceStates[stateKey] === false && isInside) {
-                  memberPlaceStates[stateKey] = true;
-                  playAlertChime('enter');
-                  triggerAlarmBanner(`✅ Safe Zone Update: You have ARRIVED at ${p.name}!`, false);
-                  if (userCircle && !isGhost) {
-                    push(ref(db, `circles/${userCircle}/alerts`), {
-                      type: "GEOFENCE_ENTER",
-                      msg: `✅ ${userName || 'Member'} has ARRIVED at ${p.name}!`,
-                      time: Date.now()
-                    });
-                  }
-                }
-              } else {
-                memberPlaceStates[stateKey] = isInside;
-              }
-            }
-          });
-
-          if (closestPlace) {
-            const distM = Math.round(minDistanceKm * 1000);
-            if (distM <= closestPlace.radius) {
-              document.getElementById('valDistance').innerText = `0 m (${closestPlace.name})`;
-            } else {
-              document.getElementById('valDistance').innerText = minDistanceKm < 1 ? `${distM} m` : `${minDistanceKm.toFixed(1)} km`;
-            }
-          }
-        } else {
-          document.getElementById('valDistance').innerText = "None Set";
-        }
-
-        if (!userMarker) {
-          userMarker = L.marker(lastPos, {
-            icon: L.divIcon({ className: 'custom-map-pin', html: getMarkerHTML(), iconSize: [32, 32], iconAnchor: [16, 16] })
-          }).addTo(map);
-          map.setView(lastPos, 16);
-        } else {
-          userMarker.setLatLng(lastPos);
-        }
-
-        if (isRadar && radarCircle) radarCircle.setLatLng(lastPos);
-
-        if (isTrace) {
-          traceCoords.push(lastPos);
-          if (tracePolyline) tracePolyline.setLatLngs(traceCoords);
-          else tracePolyline = L.polyline(traceCoords, { color: '#0A84FF', weight: 4 }).addTo(map);
-        }
-
-        // Broadcast active coordinate update to Firebase
-        if (!isGhost && userCircle && userId) {
-          window.broadcastPresence(latitude, longitude);
-        }
-      }, console.warn, { enableHighAccuracy: true, maximumAge: 1000, timeout: 10000 });
-    }
-
-    if ('getBattery' in navigator) {
-      navigator.getBattery().then(b => {
-        const checkBattery = () => {
-          currentBatteryPct = Math.round(b.level * 100);
-        };
-        checkBattery();
-        b.addEventListener('levelchange', checkBattery);
-      });
-    }
-
-    window.toggleDrawer = () => document.getElementById('bottomDrawer').classList.toggle('expanded');
-    window.toggleTheme = () => document.body.classList.toggle('light-mode');
-    window.recenterLocation = () => { if (lastPos) map.flyTo(lastPos, 16); };
-    window.dropBreadcrumb = () => {
-      if (lastPos) L.marker(lastPos, { icon: L.divIcon({ html: '<div style="font-size:1.5rem;">📍</div>', className: 'custom-map-pin' }) }).addTo(map);
+    window.shareLiveLocationWhatsApp = () => {
+      const gmapsUrl = lastPos ? `https://maps.google.com/?q=${lastPos[0]},${lastPos[1]}` : window.location.origin;
+      const msg = encodeURIComponent(`📍 Live GPS Location (${userName || 'Track365'}): ${gmapsUrl}`);
+      window.open(`https://wa.me/?text=${msg}`, '_blank');
     };
-    window.triggerSos = () => alert("🚨 Emergency SOS dispatched to your Family Circle!");
 
+    window.shareCircleWhatsApp = () => {
+      if (!userCircle) return alert("Create or join a Circle code first.");
+      const inviteUrl = `${window.location.origin}${window.location.pathname}?circle=${userCircle}`;
+      const msg = encodeURIComponent(`🛡️ Join our Family Circle on Track365!\nCircle Code: *${userCircle}*\nTap to join: ${inviteUrl}`);
+      window.open(`https://wa.me/?text=${msg}`, '_blank');
+    };
+
+    window.sendCircleCheckIn = () => {
+      playAlertChime('enter');
+      const text = `📍 ${userName || 'Member'} checked in safely!`;
+      triggerAlarmBanner(text, false);
+      broadcastCircleAlert(text, 'INFO');
+    };
+
+    // Feature Toggles
     function requirePro(featureName) {
       if (!isProUnlocked) {
-        alert(`🔒 ${featureName} is reserved for Track365 Plus. Upgrade for ₹49 to activate.`);
         openModal('upgradeModal');
         return false;
       }
       return true;
     }
 
-    window.ringDeviceAudio = () => {
-      if (!requirePro("Phone Finder Ring")) return;
-      playAlertChime('exit');
-      setTimeout(() => playAlertChime('enter'), 300);
-      alert("🔊 Sound Alert: Ring tone emitted!");
+    window.toggleTrace = () => {
+      isTrace = !isTrace;
+      document.getElementById('btnTrace').classList.toggle('active-green', isTrace);
+      if (isTrace) traceCoords = lastPos ? [lastPos] : [];
+      else if (tracePolyline) { map.removeLayer(tracePolyline); tracePolyline = null; }
     };
 
     window.toggleBrakingShield = () => {
       isBrakingShield = !isBrakingShield;
-      const b = document.getElementById('btnBraking');
-      b.classList.toggle('active-green', isBrakingShield);
-      alert(`Crash Shield ${isBrakingShield ? 'Enabled' : 'Disabled'}.`);
+      document.getElementById('btnBraking').classList.toggle('active-green', isBrakingShield);
+      triggerAlarmBanner(`🚗 Crash Shield ${isBrakingShield ? 'Active' : 'Paused'}`, false);
     };
 
-    window.toggleTrace = () => {
-      isTrace = !isTrace;
-      const btn = document.getElementById('btnTrace');
-      btn.classList.toggle('active-green', isTrace);
-      if (isTrace) traceCoords = lastPos ? [lastPos] : [];
-      else if (tracePolyline) { map.removeLayer(tracePolyline); tracePolyline = null; }
+    window.toggleBatterySaver = () => {
+      isBatterySaver = !isBatterySaver;
+      document.getElementById('btnSaver').classList.toggle('active-green', isBatterySaver);
+      triggerAlarmBanner(`🔋 Smart Battery Saver ${isBatterySaver ? 'Enabled (Eco Polling)' : 'Disabled (1s Live)'}`, false);
     };
 
     window.toggleStealth = () => {
       if (!requirePro("Private Mode")) return;
       isGhost = !isGhost;
-      const btn = document.getElementById('btnStealth');
-      btn.classList.toggle('active-ghost', isGhost);
-      btn.innerHTML = isGhost ? "👻 Private Mode (On)" : "👻 Private Mode (Ghost) <span class='lock-badge'>PLUS</span>";
-      if (userMarker) userMarker.setIcon(L.divIcon({ className: 'custom-map-pin', html: getMarkerHTML(), iconSize: [32, 32], iconAnchor: [16, 16] }));
+      document.getElementById('btnStealth').classList.toggle('active-ghost', isGhost);
+      if (userMarker) userMarker.setIcon(L.divIcon({ className: 'custom-map-pin', html: getMyPinHTML(), iconSize: [36, 36], iconAnchor: [18, 18] }));
+      triggerAlarmBanner(isGhost ? "👻 Private Mode ON (Location Paused)" : "👻 Private Mode OFF (Live)", false);
     };
 
     window.toggleRadar = () => {
       if (!requirePro("Live Area Radar")) return;
       isRadar = !isRadar;
-      const btn = document.getElementById('btnRadar');
-      btn.classList.toggle('active-green', isRadar);
-      if (isRadar && lastPos) radarCircle = L.circleMarker(lastPos, { radius: 110, className: 'radar-sweep', stroke: false }).addTo(map);
-      else if (radarCircle) { map.removeLayer(radarCircle); radarCircle = null; }
+      document.getElementById('btnRadar').classList.toggle('active-green', isRadar);
+      if (isRadar) {
+        const center = lastPos || map.getCenter();
+        radarCircle = L.circleMarker(center, { radius: 110, className: 'radar-sweep', stroke: false }).addTo(map);
+      } else if (radarCircle) {
+        map.removeLayer(radarCircle);
+        radarCircle = null;
+      }
     };
 
+    window.ringDeviceAudio = () => {
+      if (!requirePro("Phone Finder Ring")) return;
+      playAlertChime('exit');
+      setTimeout(() => playAlertChime('enter'), 350);
+      broadcastCircleAlert(`🔊 ${userName || 'Member'} triggered Phone Finder Ring!`, 'INFO');
+      triggerAlarmBanner("🔊 Ringing Circle Devices...", false);
+    };
+
+    // Admin & Dual UPI Checkout
     window.submitUtrForVerification = () => {
       const utr = document.getElementById('utrVerificationInput').value.trim();
-      if (utr.length < 8) return alert("❌ Invalid: Enter a valid 8 to 12-digit UPI / UTR reference number.");
-      push(ref(db, `upgrade_tickets`), {
-        userId: userId || "guest",
-        name: userName || "Anonymous",
-        utr: utr,
-        time: Date.now()
-      });
-      alert(`🎉 Thank You! Reference ${utr} has been submitted for activation verification.`);
+      if (utr.length < 8) return alert("Enter a valid 12-digit UTR / UPI reference number.");
+      const savedUtrs = JSON.parse(localStorage.getItem('t365_utr_tickets') || '[]');
+      savedUtrs.unshift({ name: userName || 'User', utr, time: new Date().toLocaleTimeString() });
+      localStorage.setItem('t365_utr_tickets', JSON.stringify(savedUtrs));
+      if (db) push(ref(db, 'upgrade_tickets'), { userId, name: userName, utr, time: Date.now() }).catch(() => {});
+      alert(`🎉 Thank you! UTR ${utr} submitted. Use Admin PIN (3650) to approve immediately.`);
       closeModal('upgradeModal');
     };
 
     window.authenticateAdmin = () => {
-      const pin = document.getElementById('adminPinInput').value.trim();
-      if (pin === "3650") {
+      if (document.getElementById('adminPinInput').value.trim() === "3650") {
         isProUnlocked = true;
         localStorage.setItem('t365_pro', 'true');
         syncProUI();
         document.getElementById('adminTicketZone').style.display = 'block';
-        alert("⚡ Admin Access Verified: Track365 Plus enabled on this device!");
+        const tickets = JSON.parse(localStorage.getItem('t365_utr_tickets') || '[]');
+        document.getElementById('utrListContainer').innerHTML = tickets.length
+          ? tickets.map(t => `<div style="padding:4px 0; border-bottom:1px solid var(--border-color);"><b>${t.name}</b>: UTR ${t.utr} (${t.time})</div>`).join('')
+          : `<div>No pending local UTR tickets. Plus unlocked on this device!</div>`;
+        playAlertChime('enter');
       } else {
-        alert("❌ Access Denied: Incorrect Master PIN.");
+        alert("❌ Incorrect Admin PIN.");
       }
     };
 
-    const ic = document.getElementById('isoCardEl');
-    ic.addEventListener('mousemove', e => {
-      const r = ic.getBoundingClientRect();
-      ic.style.transform = `rotateX(${(e.clientY - r.top - r.height / 2) / -8}deg) rotateY(${(e.clientX - r.left - r.width / 2) / 8}deg) scale(1.02)`;
-    });
-    ic.addEventListener('mouseleave', () => ic.style.transform = 'rotateX(14deg) rotateY(-8deg) rotateZ(2deg)');
-
-    const UPIS = { pri: { v: "meerakushwaha4789@okaxis" }, dad: { v: "9936280244@upi" } };
-    window.switchVpa = (t) => {
-      const vpa = UPIS[t].v;
+    const UPIS = { pri: "meerakushwaha4789@okaxis", dad: "9936280244@upi" };
+    window.switchVpa = (key) => {
+      const vpa = UPIS[key];
       const url = `upi://pay?pa=${vpa}&pn=Track365%20Plus&am=49&cu=INR&tn=Track365PlusUnlock`;
       document.getElementById('vpaLabel').innerText = vpa;
-      document.getElementById('qrUpi').src = `https://api.qrserver.com/v1/create-qr-code/?size=120x120&data=${encodeURIComponent(url)}`;
+      document.getElementById('qrUpi').src = `https://api.qrserver.com/v1/create-qr-code/?size=140x140&data=${encodeURIComponent(url)}`;
       document.getElementById('linkUpi').href = url;
-
-      if (t === 'pri') {
-        document.getElementById('tabPri').style.background = 'var(--accent-pro)';
-        document.getElementById('tabPri').style.color = '#fff';
-        document.getElementById('tabDad').style.background = 'transparent';
-        document.getElementById('tabDad').style.color = 'var(--text-main)';
-      } else {
-        document.getElementById('tabDad').style.background = 'var(--accent-pro)';
-        document.getElementById('tabDad').style.color = '#fff';
-        document.getElementById('tabPri').style.background = 'transparent';
-        document.getElementById('tabPri').style.color = 'var(--text-main)';
-      }
+      document.getElementById('tabPri').style.background = key === 'pri' ? 'var(--accent-pro)' : 'transparent';
+      document.getElementById('tabPri').style.color = key === 'pri' ? '#fff' : 'var(--text-main)';
+      document.getElementById('tabDad').style.background = key === 'dad' ? 'var(--accent-pro)' : 'transparent';
+      document.getElementById('tabDad').style.color = key === 'dad' ? '#fff' : 'var(--text-main)';
     };
     window.switchVpa('pri');
 
+    // PWA Install Prompt
+    let deferredPrompt = null;
+    window.addEventListener('beforeinstallprompt', (e) => { e.preventDefault(); deferredPrompt = e; });
+    window.triggerPwaInstall = async () => {
+      if (deferredPrompt) {
+        deferredPrompt.prompt();
+        deferredPrompt = null;
+      } else {
+        alert("📲 To install Track365 as a full-screen app: Tap your browser Menu (⋮ or Share) ➔ select 'Add to Home Screen' or 'Install App'.");
+      }
+    };
+
+    window.toggleDrawer = () => document.getElementById('bottomDrawer').classList.toggle('expanded');
+    window.toggleTheme = () => document.body.classList.toggle('light-mode');
+    window.recenterLocation = () => { if (lastPos) map.flyTo(lastPos, 16); };
+    window.dropBreadcrumb = () => { if (lastPos) L.marker(lastPos, { icon: L.divIcon({ html: '<div style="font-size:1.5rem;">📍</div>', className: 'custom-map-pin' }) }).addTo(map); };
     window.openModal = id => document.getElementById(id).style.display = 'flex';
     window.closeModal = id => document.getElementById(id).style.display = 'none';
   </script>
